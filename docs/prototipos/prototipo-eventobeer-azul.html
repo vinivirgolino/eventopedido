@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EventoPedido — Protótipo</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --azul: #2B6CB0;
+    --azul-esc: #1A4F8A;
+    --azul-claro: #EBF4FF;
+    --azul-medio: #63B3ED;
+    --azul-borda: #BEE3F8;
+    --branco: #FFFFFF;
+    --cinza-texto: #2D3748;
+    --cinza-sub: #718096;
+    --cinza-borda: #E2E8F0;
+    --cinza-fundo: #F7FAFC;
+    --erro: #E53E3E;
+    --verde-ok: #38A169;
+    --amarelo: #D69E2E;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #EBF4FF; /* moldura da apresentação, não faz parte do app */
+    color: var(--cinza-texto);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+  }
+
+  .switcher {
+    display: flex; gap: 8px; background: var(--branco);
+    border: 1px solid var(--cinza-borda); border-radius: 12px; padding: 6px;
+    margin-bottom: 12px; box-shadow: 0 1px 4px rgba(43,108,176,0.08);
+  }
+  .switcher button {
+    font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600;
+    padding: 8px 20px; border-radius: 8px; border: none; cursor: pointer;
+    transition: all 0.2s; color: var(--cinza-sub); background: transparent;
+  }
+  .switcher button.ativo { background: var(--azul); color: var(--branco); }
+  .dica-prototipo { font-size: 12px; color: var(--cinza-sub); margin-bottom: 20px; text-align: center; max-width: 375px; line-height: 1.5; }
+
+  .phone {
+    width: 375px; max-width: 100%; height: 740px;
+    background: var(--cinza-fundo); border-radius: 36px;
+    border: 2px solid var(--cinza-borda); overflow: hidden; position: relative;
+    box-shadow: 0 20px 60px rgba(43,108,176,0.15), 0 0 0 1px rgba(43,108,176,0.06);
+  }
+
+  .tela { display: none; flex-direction: column; height: 100%; animation: fadeIn 0.2s ease; }
+  .tela.ativa { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* HEADER */
+  .header { padding: 20px 20px 16px; border-bottom: 1px solid var(--cinza-borda); background: var(--branco); flex-shrink: 0; }
+  .header-topo { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+  .btn-voltar { background: none; border: none; color: var(--azul); font-size: 20px; cursor: pointer; padding: 0; line-height: 1; }
+  .logo { font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 600; color: var(--azul); letter-spacing: 0.06em; text-transform: uppercase; }
+  .evento-nome { font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700; line-height: 1.15; letter-spacing: 0.01em; color: var(--cinza-texto); }
+  .evento-sub { font-size: 13px; color: var(--cinza-sub); margin-top: 4px; }
+
+  .secao-titulo { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cinza-sub); padding: 16px 20px 8px; }
+
+  .scroll-area { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .scroll-area::-webkit-scrollbar { width: 0; }
+
+  /* SELEÇÃO DE EVENTO */
+  .evento-card {
+    margin: 0 16px 10px; background: var(--branco); border: 1px solid var(--cinza-borda);
+    border-radius: 16px; padding: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    cursor: pointer; transition: all 0.2s; text-align: left; width: calc(100% - 32px); font-family: inherit;
+  }
+  .evento-card:hover { border-color: var(--azul-medio); box-shadow: 0 2px 8px rgba(43,108,176,0.1); }
+  .evento-card.agendado { cursor: default; background: var(--cinza-fundo); }
+  .evento-card.agendado:hover { border-color: var(--cinza-borda); box-shadow: none; }
+  .evento-card-nome { font-family: 'Space Grotesk', sans-serif; font-size: 17px; font-weight: 700; color: var(--cinza-texto); }
+  .evento-card-info { font-size: 13px; color: var(--cinza-sub); margin-top: 4px; }
+  .evento-card-acao { font-size: 13px; font-weight: 600; color: var(--azul); white-space: nowrap; }
+  .ao-vivo { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: var(--verde-ok); text-transform: uppercase; letter-spacing: 0.06em; margin-left: 6px; vertical-align: middle; }
+  .ao-vivo::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--verde-ok); animation: pulse 1.4s infinite; }
+  .vazio-box { margin: 0 16px; padding: 20px; border: 1px dashed var(--cinza-borda); border-radius: 14px; text-align: center; font-size: 13px; color: var(--cinza-sub); }
+
+  /* AVISOS */
+  .avisos { display: flex; flex-direction: column; gap: 8px; padding: 12px 16px 0; }
+  .aviso {
+    display: flex; align-items: center; gap: 10px; border-radius: 12px; padding: 12px 14px;
+    font-size: 13px; line-height: 1.4; cursor: pointer; border: 1px solid; text-align: left; font-family: inherit; width: 100%;
+  }
+  .aviso strong { display: block; font-size: 13px; }
+  .aviso .aviso-icone { font-size: 18px; }
+  .aviso .aviso-texto { flex: 1; }
+  .aviso-pendente { background: rgba(214,158,46,0.08); border-color: rgba(214,158,46,0.35); color: #975A16; }
+  .aviso-retirada { background: rgba(56,161,105,0.08); border-color: rgba(56,161,105,0.35); color: #276749; }
+  .aviso-expirado { background: rgba(229,62,62,0.06); border-color: rgba(229,62,62,0.3); color: #9B2C2C; cursor: default; }
+  .aviso-fechar { background: none; border: none; font-size: 16px; color: inherit; cursor: pointer; padding: 2px 4px; }
+
+  /* CARDÁPIO */
+  .lista-itens { padding: 0 16px; display: flex; flex-direction: column; gap: 8px; }
+  .item-card {
+    background: var(--branco); border: 1px solid var(--cinza-borda); border-radius: 14px; padding: 14px 16px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .item-card:hover { border-color: var(--azul-medio); box-shadow: 0 2px 8px rgba(43,108,176,0.1); }
+  .item-card.esgotado { opacity: 0.55; background: var(--cinza-fundo); }
+  .item-card.esgotado:hover { border-color: var(--cinza-borda); box-shadow: none; }
+  .item-emoji { font-size: 28px; }
+  .item-card.esgotado .item-emoji { filter: grayscale(1); }
+  .item-info { flex: 1; }
+  .item-nome { font-weight: 600; font-size: 15px; color: var(--cinza-texto); }
+  .item-preco { font-size: 13px; color: var(--azul); font-weight: 600; margin-top: 2px; }
+  .selo-esgotado { font-size: 11px; font-weight: 700; color: var(--cinza-sub); background: var(--cinza-borda); border-radius: 20px; padding: 4px 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .controle-qty { display: flex; align-items: center; gap: 10px; }
+  .btn-qty {
+    width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid var(--cinza-borda); background: var(--cinza-fundo);
+    color: var(--cinza-texto); font-size: 18px; font-weight: 600; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: all 0.15s;
+  }
+  .btn-qty:hover { border-color: var(--azul); color: var(--azul); background: var(--azul-claro); }
+  .qty-num { font-weight: 700; font-size: 16px; min-width: 18px; text-align: center; color: var(--cinza-texto); }
+
+  .rodape { margin-top: auto; padding: 16px 20px 24px; border-top: 1px solid var(--cinza-borda); background: var(--branco); flex-shrink: 0; }
+  .total-linha { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .total-label { color: var(--cinza-sub); font-size: 14px; }
+  .total-valor { font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700; color: var(--azul); letter-spacing: 0.02em; }
+
+  .btn-principal {
+    width: 100%; padding: 16px; border-radius: 14px; border: none; background: var(--azul); color: var(--branco);
+    font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; letter-spacing: 0.03em;
+    transition: all 0.15s; box-shadow: 0 4px 12px rgba(43,108,176,0.25);
+  }
+  .btn-principal:hover { background: var(--azul-esc); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(43,108,176,0.3); }
+  .btn-principal:disabled { background: var(--cinza-borda); color: var(--cinza-sub); cursor: not-allowed; transform: none; box-shadow: none; }
+  .btn-secundario {
+    width: 100%; padding: 14px; border-radius: 14px; border: 1.5px solid var(--cinza-borda); background: var(--branco);
+    color: var(--cinza-texto); font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s;
+  }
+  .btn-secundario:hover { border-color: var(--azul); color: var(--azul); }
+  .btn-perigo { border-color: rgba(229,62,62,0.3); color: var(--erro); background: rgba(229,62,62,0.04); }
+  .btn-perigo:hover { border-color: var(--erro); color: var(--erro); background: rgba(229,62,62,0.08); }
+  .simulacao { display: flex; flex-direction: column; gap: 6px; padding-top: 8px; border-top: 1px dashed var(--cinza-borda); }
+  .simulacao-titulo { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cinza-sub); text-align: center; }
+  .btn-sim { background: none; border: 1px dashed var(--azul-borda); color: var(--azul); border-radius: 10px; padding: 8px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .btn-sim:hover { background: var(--azul-claro); }
+
+  /* PAGAMENTO */
+  .corpo { padding: 20px; flex: 1; display: flex; flex-direction: column; gap: 16px; background: var(--cinza-fundo); overflow-y: auto; }
+  .box { background: var(--branco); border: 1px solid var(--cinza-borda); border-radius: 14px; padding: 16px; }
+  .box-titulo { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cinza-sub); margin-bottom: 12px; }
+  .linha-item { display: flex; justify-content: space-between; font-size: 14px; padding: 6px 0; border-bottom: 1px solid var(--cinza-borda); color: var(--cinza-texto); gap: 10px; }
+  .linha-item:last-child { border-bottom: none; }
+  .linha-item .valor { color: var(--azul); font-weight: 600; white-space: nowrap; }
+  .linha-item.estornado span { text-decoration: line-through; color: var(--cinza-sub); }
+  .linha-item.estornado .valor { color: var(--cinza-sub); }
+  .metodos { display: flex; gap: 10px; }
+  .metodo-btn {
+    flex: 1; padding: 14px; border-radius: 12px; border: 1.5px solid var(--cinza-borda); background: var(--branco);
+    color: var(--cinza-texto); font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; text-align: center; transition: all 0.15s;
+  }
+  .metodo-btn.selecionado { border-color: var(--azul); color: var(--azul); background: var(--azul-claro); }
+
+  /* PIX */
+  .pix-qr { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .contador { font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 700; color: var(--cinza-texto); letter-spacing: 0.04em; }
+  .contador-label { font-size: 12px; color: var(--cinza-sub); }
+  .copia-cola { display: flex; gap: 8px; width: 100%; }
+  .copia-cola input { flex: 1; min-width: 0; font-family: monospace; font-size: 12px; padding: 10px; border: 1px solid var(--cinza-borda); border-radius: 10px; background: var(--cinza-fundo); color: var(--cinza-sub); }
+  .copia-cola button { padding: 10px 14px; border-radius: 10px; border: none; background: var(--azul); color: var(--branco); font-weight: 600; font-size: 13px; cursor: pointer; font-family: inherit; }
+
+  /* CARTÃO */
+  .form-campo { display: flex; flex-direction: column; gap: 6px; }
+  .form-campo label { font-size: 11px; font-weight: 700; color: var(--cinza-sub); letter-spacing: 0.08em; text-transform: uppercase; }
+  .form-campo input { padding: 12px 14px; border-radius: 10px; border: 1px solid var(--cinza-borda); background: var(--cinza-fundo); font-size: 15px; font-family: inherit; color: var(--cinza-texto); outline: none; width: 100%; }
+  .form-campo input:focus { border-color: var(--azul); box-shadow: 0 0 0 3px rgba(43,108,176,0.1); }
+  .form-linha { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .erro-box { background: rgba(229,62,62,0.06); border: 1px solid rgba(229,62,62,0.3); border-radius: 12px; padding: 12px 14px; font-size: 13px; color: #9B2C2C; line-height: 1.5; }
+  .erro-box strong { display: block; margin-bottom: 2px; }
+  .seguro { font-size: 12px; color: var(--cinza-sub); text-align: center; }
+
+  /* COMPROVANTE */
+  .comprovante-corpo { padding: 24px 20px; flex: 1; display: flex; flex-direction: column; align-items: center; gap: 14px; overflow-y: auto; background: var(--cinza-fundo); }
+  .check-circle { width: 64px; height: 64px; border-radius: 50%; background: rgba(56,161,105,0.1); border: 2px solid var(--verde-ok); display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; }
+  .comprovante-titulo { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; text-align: center; color: var(--cinza-texto); }
+  .status-badge { display: inline-flex; align-items: center; gap: 6px; border-radius: 20px; padding: 6px 14px; font-size: 13px; font-weight: 600; border: 1px solid; }
+  .st-aguardando { background: var(--azul-claro); border-color: var(--azul-borda); color: var(--azul); }
+  .st-atendimento { background: rgba(214,158,46,0.1); border-color: rgba(214,158,46,0.35); color: #975A16; }
+  .st-retirado { background: rgba(56,161,105,0.1); border-color: rgba(56,161,105,0.35); color: var(--verde-ok); }
+  .st-estornado { background: rgba(229,62,62,0.08); border-color: rgba(229,62,62,0.3); color: var(--erro); }
+  .pulse { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse 1.4s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.7); } }
+
+  .qr-wrapper { background: var(--branco); border: 1.5px solid var(--azul-borda); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; }
+  .qr-label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cinza-sub); }
+  .qr-svg { width: 150px; height: 150px; }
+  .qr-codigo { font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700; color: var(--azul); letter-spacing: 0.14em; }
+  .qr-validade { font-size: 12px; font-weight: 600; color: var(--cinza-sub); }
+  .qr-final-icon { font-size: 40px; }
+  .qr-final-texto { font-size: 14px; font-weight: 600; text-align: center; line-height: 1.5; }
+  .comp-horario { font-size: 12px; color: var(--cinza-sub); text-align: center; }
+  .info-instrucao { background: var(--azul-claro); border: 1px solid var(--azul-borda); border-radius: 10px; padding: 12px 16px; font-size: 13px; color: var(--cinza-sub); line-height: 1.5; width: 100%; }
+  .info-instrucao strong { color: var(--azul); }
+
+  /* TOAST */
+  .toast { display: none; position: absolute; left: 16px; right: 16px; bottom: 24px; background: var(--cinza-texto); color: var(--branco); padding: 12px 16px; border-radius: 12px; font-size: 13px; font-weight: 600; text-align: center; z-index: 300; animation: fadeIn 0.2s ease; }
+
+  /* OPERADOR */
+  .op-header { padding: 20px 20px 16px; background: var(--azul); flex-shrink: 0; }
+  .op-badge { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.7); margin-bottom: 4px; }
+  .op-titulo { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; letter-spacing: 0.01em; color: var(--branco); }
+  .op-sub { font-size: 13px; color: rgba(255,255,255,0.8); margin-top: 4px; }
+  .op-corpo { padding: 20px; flex: 1; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; background: var(--cinza-fundo); }
+
+  .login-corpo { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 20px; padding: 28px; background: var(--cinza-fundo); }
+  .login-titulo { font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 700; text-align: center; }
+  .login-sub { font-size: 14px; color: var(--cinza-sub); text-align: center; line-height: 1.5; }
+  .codigo-input {
+    width: 100%; text-align: center; font-family: 'Space Grotesk', sans-serif; font-size: 30px; font-weight: 700;
+    letter-spacing: 0.35em; text-transform: uppercase; padding: 16px 8px 16px 20px; border-radius: 14px;
+    border: 1.5px solid var(--cinza-borda); background: var(--branco); color: var(--azul); outline: none;
+  }
+  .codigo-input:focus { border-color: var(--azul); box-shadow: 0 0 0 3px rgba(43,108,176,0.1); }
+
+  .btn-escanear {
+    width: 100%; padding: 20px; border-radius: 16px; border: 2px dashed var(--azul); background: var(--azul-claro); color: var(--azul);
+    font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 700; cursor: pointer; letter-spacing: 0.03em;
+    display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.15s;
+  }
+  .btn-escanear:hover { background: var(--azul); color: var(--branco); }
+  .op-historico-titulo { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cinza-sub); }
+  .op-card { background: var(--branco); border: 1px solid var(--azul-borda); border-radius: 14px; padding: 14px 16px; }
+  .op-card-topo { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .op-codigo { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: var(--azul); letter-spacing: 0.12em; }
+  .op-horario { font-size: 12px; color: var(--cinza-sub); }
+  .op-itens { font-size: 13px; color: var(--cinza-texto); line-height: 1.6; }
+  .op-tag { font-size: 12px; font-weight: 600; margin-top: 8px; }
+
+  /* SCANNER */
+  .overlay { display: none; position: absolute; inset: 0; z-index: 100; flex-direction: column; }
+  .overlay.ativo { display: flex; }
+  .scanner-overlay { background: rgba(26,79,138,0.97); align-items: center; justify-content: center; gap: 18px; padding: 20px; }
+  .scanner-viewfinder { width: 210px; height: 210px; border: 2px solid var(--azul-medio); border-radius: 16px; position: relative; }
+  .scanner-line { position: absolute; left: 5%; width: 90%; height: 2px; background: var(--azul-medio); opacity: 0.8; animation: scan 1.8s ease-in-out infinite; }
+  @keyframes scan { 0% { top: 10%; } 50% { top: 85%; } 100% { top: 10%; } }
+  .scanner-corner { position: absolute; width: 20px; height: 20px; border-color: var(--branco); border-style: solid; }
+  .scanner-corner.tl { top: -2px; left: -2px; border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
+  .scanner-corner.tr { top: -2px; right: -2px; border-width: 3px 3px 0 0; border-radius: 0 4px 0 0; }
+  .scanner-corner.bl { bottom: -2px; left: -2px; border-width: 0 0 3px 3px; border-radius: 0 0 0 4px; }
+  .scanner-corner.br { bottom: -2px; right: -2px; border-width: 0 3px 3px 0; border-radius: 0 0 4px 0; }
+  .scanner-texto { font-size: 14px; color: rgba(255,255,255,0.75); text-align: center; }
+  .btn-cancelar-scan { padding: 12px 28px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: var(--branco); font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .sim-erros { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 100%; }
+  .sim-erros button { background: rgba(255,255,255,0.08); border: 1px dashed rgba(255,255,255,0.35); color: rgba(255,255,255,0.85); border-radius: 10px; padding: 8px 6px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; }
+
+  /* RESULTADO */
+  .resultado { background: var(--cinza-fundo); z-index: 101; }
+  .resultado-header { padding: 18px 20px; border-bottom: 1px solid var(--cinza-borda); background: var(--branco); flex-shrink: 0; }
+  .resultado-corpo { padding: 20px; flex: 1; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
+  .reserva-box { background: rgba(214,158,46,0.08); border: 1px solid rgba(214,158,46,0.35); border-radius: 12px; padding: 12px 14px; font-size: 13px; color: #975A16; line-height: 1.5; }
+  .item-op { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--cinza-borda); font-size: 14px; }
+  .item-op:last-child { border-bottom: none; }
+  .item-op.marcado span:first-child { text-decoration: line-through; color: var(--cinza-sub); }
+  .btn-esgotou { border: 1px solid var(--cinza-borda); background: var(--branco); color: var(--cinza-sub); border-radius: 8px; padding: 6px 10px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; white-space: nowrap; }
+  .item-op.marcado .btn-esgotou { border-color: rgba(229,62,62,0.35); color: var(--erro); background: rgba(229,62,62,0.06); }
+  .acoes-op { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
+
+  .erro-overlay { background: var(--cinza-fundo); z-index: 102; align-items: center; justify-content: center; gap: 14px; padding: 32px; text-align: center; }
+  .erro-circle { width: 72px; height: 72px; border-radius: 50%; background: rgba(229,62,62,0.08); border: 2px solid var(--erro); display: flex; align-items: center; justify-content: center; font-size: 30px; }
+  .erro-titulo { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; }
+  .erro-texto { font-size: 14px; color: var(--cinza-sub); line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<div class="switcher">
+  <button class="ativo" onclick="trocarModo('usuario')">👤 Consumidor</button>
+  <button onclick="trocarModo('operador')">🍺 Operador do Bar</button>
+</div>
+<div class="dica-prototipo" id="dica">Protótipo navegável. Os botões com borda tracejada simulam respostas do Pagar.me e situações do balcão.</div>
+
+<!-- ============================ CONSUMIDOR ============================ -->
+<div class="phone" id="phone-usuario">
+
+  <!-- TELA 1: SELEÇÃO DE EVENTO -->
+  <div class="tela ativa" id="tela-eventos">
+    <div class="header">
+      <div class="logo">EventoPedido</div>
+      <div class="evento-nome">Bar do Zé</div>
+      <div class="evento-sub">Escolha o evento em que você está</div>
+    </div>
+    <div class="scroll-area">
+      <div class="secao-titulo">Acontecendo agora</div>
+      <button class="evento-card" onclick="abrirCardapio()">
+        <div>
+          <div class="evento-card-nome">Forró das Quartas <span class="ao-vivo">Ao vivo</span></div>
+          <div class="evento-card-info">Hoje, 21h · até 02:00</div>
+        </div>
+        <div class="evento-card-acao">Ver cardápio →</div>
+      </button>
+      <div class="secao-titulo">Em breve</div>
+      <div class="evento-card agendado" onclick="mostrarToast('usuario','O cardápio abre às 21h do dia do evento.')">
+        <div>
+          <div class="evento-card-nome">Especial de Aniversário</div>
+          <div class="evento-card-info">Sáb, 30 ago · Começa às 21h</div>
+        </div>
+        <div class="evento-card-acao" style="color:var(--cinza-sub);">Sem pedidos</div>
+      </div>
+      <div style="padding:20px 16px;">
+        <div class="vazio-box">Eventos encerrados não aparecem aqui. Sem eventos acontecendo, a tela mostra “Nenhum evento acontecendo agora”.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TELA 2: CARDÁPIO -->
+  <div class="tela" id="tela-cardapio">
+    <div class="header">
+      <div class="header-topo">
+        <button class="btn-voltar" onclick="irPara('tela-eventos')" aria-label="Trocar de evento">←</button>
+        <div class="logo">Bar do Zé</div>
+      </div>
+      <div class="evento-nome">Forró das Quartas</div>
+      <div class="evento-sub">Hoje, 21h às 02h</div>
+    </div>
+    <div class="scroll-area">
+      <div class="avisos" id="avisos"></div>
+      <div id="lista-cardapio"></div>
+      <div style="height:16px;"></div>
+    </div>
+    <div class="rodape">
+      <div class="total-linha">
+        <span class="total-label">Total do pedido</span>
+        <span class="total-valor" id="total-valor">R$ 0,00</span>
+      </div>
+      <button class="btn-principal" id="btn-ir-pagamento" disabled onclick="irParaPagamento()">Ir para pagamento →</button>
+    </div>
+  </div>
+
+  <!-- TELA 3: CONFIRMAR PEDIDO -->
+  <div class="tela" id="tela-pagamento">
+    <div class="header">
+      <div class="header-topo">
+        <button class="btn-voltar" onclick="irPara('tela-cardapio')">←</button>
+        <div class="logo">EventoPedido</div>
+      </div>
+      <div class="evento-nome">Confirmar pedido</div>
+      <div class="evento-sub">Forró das Quartas</div>
+    </div>
+    <div class="corpo">
+      <div class="box">
+        <div class="box-titulo">Resumo</div>
+        <div id="resumo-itens"></div>
+      </div>
+      <div>
+        <div class="box-titulo">Forma de pagamento</div>
+        <div class="metodos">
+          <button class="metodo-btn selecionado" id="btn-pix" onclick="selecionarMetodo('pix')">🏦 Pix</button>
+          <button class="metodo-btn" id="btn-cartao" onclick="selecionarMetodo('cartao')">💳 Cartão</button>
+        </div>
+      </div>
+    </div>
+    <div class="rodape">
+      <div class="total-linha">
+        <span class="total-label">Total</span>
+        <span class="total-valor" id="total-pagamento">R$ 0,00</span>
+      </div>
+      <button class="btn-principal" onclick="confirmarPedido()">Continuar →</button>
+    </div>
+  </div>
+
+  <!-- TELA 4: PIX -->
+  <div class="tela" id="tela-pix">
+    <div class="header">
+      <div class="header-topo">
+        <button class="btn-voltar" onclick="sairDoPix()">←</button>
+        <div class="logo">EventoPedido</div>
+      </div>
+      <div class="evento-nome">Pague com Pix</div>
+      <div class="evento-sub">Pedido <span id="pix-codigo">—</span> · <span id="pix-total">R$ 0,00</span></div>
+    </div>
+    <div class="corpo">
+      <div class="box pix-qr">
+        <div class="status-badge st-atendimento"><div class="pulse"></div>Aguardando confirmação</div>
+        <svg class="qr-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-label="QR Code do Pix">
+          <rect width="100" height="100" fill="white"/>
+          <rect x="5" y="5" width="35" height="35" fill="none" stroke="#2D3748" stroke-width="3"/><rect x="12" y="12" width="21" height="21" fill="#2D3748"/>
+          <rect x="60" y="5" width="35" height="35" fill="none" stroke="#2D3748" stroke-width="3"/><rect x="67" y="12" width="21" height="21" fill="#2D3748"/>
+          <rect x="5" y="60" width="35" height="35" fill="none" stroke="#2D3748" stroke-width="3"/><rect x="12" y="67" width="21" height="21" fill="#2D3748"/>
+          <rect x="48" y="8" width="6" height="6" fill="#2D3748"/><rect x="48" y="22" width="6" height="6" fill="#2D3748"/><rect x="48" y="48" width="6" height="6" fill="#2D3748"/>
+          <rect x="62" y="48" width="6" height="6" fill="#2D3748"/><rect x="76" y="48" width="6" height="6" fill="#2D3748"/><rect x="88" y="48" width="6" height="6" fill="#2D3748"/>
+          <rect x="62" y="62" width="6" height="6" fill="#2D3748"/><rect x="76" y="70" width="6" height="6" fill="#2D3748"/><rect x="88" y="62" width="6" height="6" fill="#2D3748"/>
+          <rect x="62" y="84" width="6" height="6" fill="#2D3748"/><rect x="84" y="84" width="10" height="10" fill="#2D3748"/><rect x="8" y="48" width="6" height="6" fill="#2D3748"/><rect x="24" y="48" width="6" height="6" fill="#2D3748"/>
+        </svg>
+        <div class="contador" id="contador-pix">15:00</div>
+        <div class="contador-label">para pagar. Depois disso, o pedido expira e nada é cobrado.</div>
+        <div class="copia-cola">
+          <input readonly value="00020126580014br.gov.bcb.pix0136a1f4c2e8-7b9d-4e2a" aria-label="Código Pix copia e cola">
+          <button onclick="mostrarToast('usuario','Código Pix copiado!')">Copiar</button>
+        </div>
+      </div>
+      <div class="info-instrucao">Abra o app do seu banco, escolha <strong>Pix copia e cola</strong> e cole o código. Esta tela se atualiza sozinha quando o pagamento for confirmado.</div>
+      <div class="simulacao">
+        <div class="simulacao-titulo">Simular resposta do Pagar.me</div>
+        <button class="btn-sim" onclick="pixConfirmado()">✓ Pix pago (webhook recebido)</button>
+        <button class="btn-sim" onclick="pixExpirado()">⏱ Prazo do Pix esgotado</button>
+      </div>
+    </div>
+    <div class="rodape">
+      <button class="btn-secundario" onclick="sairDoPix()">Voltar ao cardápio</button>
+    </div>
+  </div>
+
+  <!-- TELA 5: CARTÃO -->
+  <div class="tela" id="tela-cartao">
+    <div class="header">
+      <div class="header-topo">
+        <button class="btn-voltar" onclick="irPara('tela-pagamento')">←</button>
+        <div class="logo">EventoPedido</div>
+      </div>
+      <div class="evento-nome">Pague com cartão</div>
+      <div class="evento-sub">Pedido <span id="cartao-codigo">—</span> · <span id="cartao-total">R$ 0,00</span></div>
+    </div>
+    <div class="corpo">
+      <div class="erro-box" id="cartao-erro" style="display:none;">
+        <strong>Cartão recusado</strong>
+        O banco não autorizou o pagamento. Seu pedido foi mantido: tente outro cartão ou pague com Pix.
+      </div>
+      <div class="box" style="display:flex;flex-direction:column;gap:12px;">
+        <div class="form-campo"><label for="c-num">Número do cartão</label><input id="c-num" inputmode="numeric" placeholder="0000 0000 0000 0000" value="4111 1111 1111 1111"></div>
+        <div class="form-campo"><label for="c-nome">Nome impresso</label><input id="c-nome" placeholder="Como está no cartão" value="MARIA S OLIVEIRA"></div>
+        <div class="form-linha">
+          <div class="form-campo"><label for="c-val">Validade</label><input id="c-val" placeholder="MM/AA" value="08/29"></div>
+          <div class="form-campo"><label for="c-cvv">CVV</label><input id="c-cvv" inputmode="numeric" placeholder="123" value="123"></div>
+        </div>
+      </div>
+      <div class="seguro">🔒 Os dados do cartão vão direto para o Pagar.me e não passam pelo nosso servidor.</div>
+      <div class="simulacao">
+        <div class="simulacao-titulo">Simular resposta do Pagar.me</div>
+        <button class="btn-sim" onclick="cartaoRecusado()">✗ Cartão recusado</button>
+      </div>
+    </div>
+    <div class="rodape" style="display:flex;flex-direction:column;gap:8px;">
+      <button class="btn-principal" id="btn-pagar-cartao" onclick="pagarCartao()">Pagar →</button>
+      <button class="btn-secundario" id="btn-trocar-pix" style="display:none;" onclick="trocarParaPix()">Pagar com Pix</button>
+    </div>
+  </div>
+
+  <!-- TELA 6: PROCESSANDO -->
+  <div class="tela" id="tela-processando" style="align-items:center;justify-content:center;gap:20px;background:var(--cinza-fundo);">
+    <div style="font-size:48px;animation:spin 1s linear infinite;">⏳</div>
+    <div style="font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;color:var(--cinza-texto);">Processando pagamento...</div>
+    <div style="color:var(--cinza-sub);font-size:14px;">Só um segundo</div>
+    <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+  </div>
+
+  <!-- TELA 7: COMPROVANTE -->
+  <div class="tela" id="tela-comprovante">
+    <div class="header">
+      <div class="header-topo">
+        <button onclick="abrirCardapio()" style="font-size:14px;font-family:'Inter',sans-serif;font-weight:600;color:var(--azul);background:none;border:none;cursor:pointer;">← Cardápio</button>
+      </div>
+      <div class="logo">Forró das Quartas</div>
+    </div>
+    <div class="comprovante-corpo" id="comprovante-corpo"></div>
+  </div>
+
+  <div class="toast" id="toast-usuario"></div>
+</div>
+
+<!-- ============================ OPERADOR ============================ -->
+<div class="phone" id="phone-operador" style="display:none;">
+
+  <!-- LOGIN -->
+  <div class="tela ativa" id="tela-op-login">
+    <div class="login-corpo">
+      <div style="text-align:center;font-size:40px;">🍺</div>
+      <div class="login-titulo">Acesso do operador</div>
+      <div class="login-sub">Digite o código de 6 caracteres que o estabelecimento enviou para você.</div>
+      <input class="codigo-input" id="codigo-op" maxlength="6" placeholder="······" autocomplete="off" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')">
+      <div class="erro-box" id="login-erro" style="display:none;"></div>
+      <button class="btn-principal" id="btn-entrar" onclick="entrarOperador()">Entrar</button>
+      <div class="login-sub" style="font-size:12px;">Para o protótipo, use o código <strong style="color:var(--azul);letter-spacing:0.1em;">K7X2P9</strong>.</div>
+    </div>
+  </div>
+
+  <!-- PAINEL -->
+  <div class="tela" id="tela-operador">
+    <div class="op-header">
+      <div class="op-badge">⚡ Painel do Bar</div>
+      <div class="op-titulo">Forró das Quartas</div>
+      <div class="op-sub">João Silva · Bar Principal · acesso até 02:00</div>
+    </div>
+    <div class="op-corpo">
+      <button class="btn-escanear" onclick="abrirScanner()"><span style="font-size:22px;">📷</span> Escanear pedido</button>
+      <div class="op-historico-titulo">Meus atendimentos</div>
+      <div id="op-historico-lista" style="display:flex;flex-direction:column;gap:10px;"></div>
+    </div>
+  </div>
+
+  <!-- SCANNER -->
+  <div class="overlay scanner-overlay" id="scanner-overlay">
+    <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;color:#fff;">Aponte para o QR Code</div>
+    <div class="scanner-viewfinder">
+      <div class="scanner-line"></div>
+      <div class="scanner-corner tl"></div><div class="scanner-corner tr"></div>
+      <div class="scanner-corner bl"></div><div class="scanner-corner br"></div>
+    </div>
+    <div class="scanner-texto">Mantenha o QR Code dentro da área</div>
+    <button class="btn-principal" style="width:220px;" onclick="simularLeitura()">Simular leitura ↗</button>
+    <div class="sim-erros">
+      <button onclick="mostrarErro('usado')">QR já utilizado</button>
+      <button onclick="mostrarErro('outro-balcao')">Em outro balcão</button>
+      <button onclick="mostrarErro('nao-pago')">Pagamento pendente</button>
+      <button onclick="mostrarErro('encerrado')">Evento encerrado</button>
+    </div>
+    <button class="btn-cancelar-scan" onclick="fecharScanner()">Cancelar</button>
+  </div>
+
+  <!-- ATENDIMENTO -->
+  <div class="overlay resultado" id="scan-resultado">
+    <div class="resultado-header">
+      <div class="logo">Atendimento em andamento</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:700;color:var(--azul);letter-spacing:0.12em;margin-top:4px;" id="op-codigo-lido">—</div>
+    </div>
+    <div class="resultado-corpo">
+      <div class="reserva-box">🔒 Este pedido está <strong>reservado para você</strong>. Nenhum outro balcão consegue atendê-lo. Conclua ou cancele o atendimento para escanear outro pedido.</div>
+      <div class="box">
+        <div class="box-titulo">Itens · toque em “Acabou” se faltar algum</div>
+        <div id="op-itens-lidos"></div>
+      </div>
+      <div class="erro-box" id="estorno-resumo" style="display:none;"></div>
+      <div class="acoes-op">
+        <button class="btn-principal" id="btn-confirmar" onclick="confirmarEntrega()">✓ Confirmar entrega</button>
+        <button class="btn-secundario btn-perigo" id="btn-estornar-marcados" style="display:none;" onclick="estornarMarcados()">Estornar itens que acabaram</button>
+        <button class="btn-secundario btn-perigo" onclick="estornarTudo()">Estornar pedido inteiro</button>
+        <button class="btn-secundario" onclick="cancelarAtendimento()">Cancelar atendimento</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ERRO DE LEITURA -->
+  <div class="overlay erro-overlay" id="erro-overlay">
+    <div class="erro-circle" id="erro-icone">✗</div>
+    <div class="erro-titulo" id="erro-titulo">—</div>
+    <div class="erro-texto" id="erro-texto">—</div>
+    <button class="btn-principal" style="margin-top:12px;" onclick="fecharErro()">Voltar</button>
+  </div>
+
+  <div class="toast" id="toast-operador"></div>
+</div>
+
+<script>
+  // ------------------------------------------------------------------ dados
+  const cardapio = [
+    { id:'skol',  cat:'beverage', nome:'Skol Lata 350ml',            emoji:'🍺', preco:8,  disponivel:true },
+    { id:'hein',  cat:'beverage', nome:'Heineken Long Neck',         emoji:'🍻', preco:14, disponivel:true },
+    { id:'caip',  cat:'beverage', nome:'Caipirinha',                 emoji:'🥃', preco:18, disponivel:true },
+    { id:'agua',  cat:'beverage', nome:'Água Mineral 500ml',         emoji:'💧', preco:5,  disponivel:true },
+    { id:'espet', cat:'snack',    nome:'Espetinho de Frango',        emoji:'🍢', preco:12, disponivel:true },
+    { id:'carne', cat:'snack',    nome:'Carne de Sol c/ Macaxeira',  emoji:'🧀', preco:25, disponivel:false },
+  ];
+  const categorias = [
+    { id:'beverage', titulo:'🍺 Bebidas' },
+    { id:'snack',    titulo:'🍢 Petiscos' },
+    { id:'food',     titulo:'🍽️ Comidas' },
+  ];
+  const codigosPedido = ['GH7-382','MK3-915','PX1-447','BZ9-201','TF4-638','NR8-560'];
+
+  let qtds = {};
+  let metodo = 'pix';
+  let pedidos = [];          // { codigo, itens:[{id,nome,qty,preco,estornado}], status, metodo, hora, operador }
+  let pedidoAtual = null;    // pedido em pagamento / exibido no comprovante
+  let pixTimer = null, pixRestante = 900;
+  let avisoExpiradoPendente = false;
+
+  // operador
+  let tentativasLogin = 0;
+  let atendimento = null;    // pedido em atendimento pelo operador
+  let marcados = new Set();
+  let entregues = [];
+
+  const fmt = v => 'R$ ' + v.toFixed(2).replace('.', ',');
+  const agoraHora = () => { const d = new Date(); return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); };
+  const totalPedido = p => p.itens.reduce((a, it) => a + it.qty * it.preco, 0);
+  const totalEstornado = p => p.itens.reduce((a, it) => a + (it.estornado || 0) * it.preco, 0);
+
+  // ------------------------------------------------------------------ navegação
+  function irPara(id) {
+    document.querySelectorAll('#phone-usuario .tela').forEach(t => t.classList.remove('ativa'));
+    document.getElementById(id).classList.add('ativa');
+  }
+  function irParaOp(id) {
+    document.querySelectorAll('#phone-operador .tela').forEach(t => t.classList.remove('ativa'));
+    document.getElementById(id).classList.add('ativa');
+  }
+  function trocarModo(modo) {
+    document.querySelectorAll('.switcher button').forEach((b, i) => b.classList.toggle('ativo', (modo === 'usuario' && i === 0) || (modo === 'operador' && i === 1)));
+    document.getElementById('phone-usuario').style.display = modo === 'usuario' ? 'block' : 'none';
+    document.getElementById('phone-operador').style.display = modo === 'operador' ? 'block' : 'none';
+    if (modo === 'usuario') atualizarTelaUsuario();
+  }
+  function mostrarToast(lado, msg) {
+    const t = document.getElementById('toast-' + lado);
+    t.textContent = msg; t.style.display = 'block';
+    clearTimeout(t._timer); t._timer = setTimeout(() => { t.style.display = 'none'; }, 2200);
+  }
+
+  // Atualiza a tela que o consumidor está vendo (simula o Supabase Realtime)
+  function atualizarTelaUsuario() {
+    const ativa = document.querySelector('#phone-usuario .tela.ativa');
+    if (!ativa) return;
+    if (ativa.id === 'tela-cardapio') { renderizarAvisos(); renderizarCardapio(); }
+    if (ativa.id === 'tela-comprovante') renderizarComprovante();
+  }
+
+  // ------------------------------------------------------------------ cardápio
+  function abrirCardapio() {
+    renderizarCardapio();
+    renderizarAvisos();
+    irPara('tela-cardapio');
+    document.querySelector('#tela-cardapio .scroll-area').scrollTop = 0;
+  }
+
+  function renderizarCardapio() {
+    const lista = document.getElementById('lista-cardapio');
+    lista.innerHTML = '';
+    categorias.forEach(cat => {
+      const itens = cardapio.filter(i => i.cat === cat.id);
+      if (!itens.length) return;
+      const titulo = document.createElement('div');
+      titulo.className = 'secao-titulo'; titulo.textContent = cat.titulo;
+      lista.appendChild(titulo);
+      const grupo = document.createElement('div');
+      grupo.className = 'lista-itens';
+      itens.forEach(i => {
+        if (!i.disponivel) qtds[i.id] = 0;
+        const q = qtds[i.id] || 0;
+        const card = document.createElement('div');
+        card.className = 'item-card' + (i.disponivel ? '' : ' esgotado');
+        card.innerHTML = `
+          <div class="item-emoji">${i.emoji}</div>
+          <div class="item-info"><div class="item-nome">${i.nome}</div><div class="item-preco">${fmt(i.preco)}</div></div>
+          ${i.disponivel
+            ? `<div class="controle-qty">
+                 <button class="btn-qty" onclick="alterarQty('${i.id}',-1)" aria-label="Diminuir">−</button>
+                 <span class="qty-num">${q}</span>
+                 <button class="btn-qty" onclick="alterarQty('${i.id}',1)" aria-label="Aumentar">+</button>
+               </div>`
+            : `<span class="selo-esgotado">Esgotado</span>`}`;
+        grupo.appendChild(card);
+      });
+      lista.appendChild(grupo);
+    });
+    atualizarTotal();
+  }
+
+  function alterarQty(id, delta) {
+    qtds[id] = Math.max(0, (qtds[id] || 0) + delta);
+    renderizarCardapio();
+  }
+  function calcTotal() { return cardapio.reduce((a, i) => a + (qtds[i.id] || 0) * i.preco, 0); }
+  function atualizarTotal() {
+    const t = calcTotal();
+    document.getElementById('total-valor').textContent = fmt(t);
+    document.getElementById('btn-ir-pagamento').disabled = t === 0;
+  }
+
+  // ------------------------------------------------------------------ avisos
+  function renderizarAvisos() {
+    const box = document.getElementById('avisos');
+    box.innerHTML = '';
+    const pendente = pedidos.find(p => p.status === 'awaiting_payment');
+    const disponiveis = pedidos.filter(p => p.status === 'paid' || p.status === 'in_service');
+    if (pendente) {
+      box.innerHTML += `<button class="aviso aviso-pendente" onclick="retomarPagamento('${pendente.codigo}')">
+        <span class="aviso-icone">🕐</span><span class="aviso-texto"><strong>Pagamento pendente</strong>Pedido ${pendente.codigo} · toque para ver</span><span>›</span></button>`;
+    }
+    if (disponiveis.length) {
+      const n = disponiveis.length;
+      box.innerHTML += `<button class="aviso aviso-retirada" onclick="abrirComprovante('${disponiveis[0].codigo}')">
+        <span class="aviso-icone">✅</span><span class="aviso-texto"><strong>${n} pedido${n > 1 ? 's' : ''} disponíve${n > 1 ? 'is' : 'l'} para retirada</strong>Toque para ver o QR Code</span><span>›</span></button>`;
+    }
+    if (avisoExpiradoPendente) {
+      box.innerHTML += `<div class="aviso aviso-expirado">
+        <span class="aviso-icone">⚠️</span><span class="aviso-texto"><strong>Pix expirado</strong>Nenhum valor foi cobrado.</span>
+        <button class="aviso-fechar" onclick="avisoExpiradoPendente=false;renderizarAvisos();" aria-label="Fechar aviso">✕</button></div>`;
+    }
+  }
+
+  // ------------------------------------------------------------------ pagamento
+  function irParaPagamento() {
+    document.getElementById('total-pagamento').textContent = fmt(calcTotal());
+    const resumo = document.getElementById('resumo-itens');
+    resumo.innerHTML = cardapio.filter(i => qtds[i.id] > 0)
+      .map(i => `<div class="linha-item"><span>${qtds[i.id]}x ${i.nome}</span><span class="valor">${fmt(qtds[i.id] * i.preco)}</span></div>`).join('');
+    irPara('tela-pagamento');
+  }
+
+  function selecionarMetodo(m) {
+    metodo = m;
+    document.getElementById('btn-pix').classList.toggle('selecionado', m === 'pix');
+    document.getElementById('btn-cartao').classList.toggle('selecionado', m === 'cartao');
+  }
+
+  // Cria o pedido (awaiting_payment) e segue para a tentativa de pagamento
+  function confirmarPedido() {
+    const itens = cardapio.filter(i => qtds[i.id] > 0).map(i => ({ id: i.id, nome: i.nome, qty: qtds[i.id], preco: i.preco, estornado: 0 }));
+    pedidoAtual = { codigo: codigosPedido[pedidos.length % codigosPedido.length], itens, status: 'awaiting_payment', metodo, hora: agoraHora(), operador: null };
+    pedidos.unshift(pedidoAtual);
+    qtds = {};
+    if (metodo === 'pix') abrirPix(); else abrirCartao();
+  }
+
+  function abrirPix() {
+    pedidoAtual.metodo = 'pix';
+    document.getElementById('pix-codigo').textContent = pedidoAtual.codigo;
+    document.getElementById('pix-total').textContent = fmt(totalPedido(pedidoAtual));
+    if (!pixTimer) {
+      pixRestante = 900;
+      pixTimer = setInterval(() => {
+        pixRestante = Math.max(0, pixRestante - 1);
+        const m = Math.floor(pixRestante / 60), s = pixRestante % 60;
+        document.getElementById('contador-pix').textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+        if (pixRestante === 0) pixExpirado();
+      }, 1000);
+    }
+    irPara('tela-pix');
+  }
+
+  function retomarPagamento(codigo) {
+    pedidoAtual = pedidos.find(p => p.codigo === codigo);
+    if (pedidoAtual.metodo === 'pix') abrirPix(); else abrirCartao();
+  }
+
+  function sairDoPix() { abrirCardapio(); }
+
+  function pararPix() { clearInterval(pixTimer); pixTimer = null; document.getElementById('contador-pix').textContent = '15:00'; }
+
+  function pixConfirmado() {
+    pararPix();
+    pedidoAtual.status = 'paid';
+    pedidoAtual.hora = agoraHora();
+    abrirComprovante(pedidoAtual.codigo);
+  }
+
+  function pixExpirado() {
+    const p = pedidos.find(x => x.status === 'awaiting_payment');
+    pararPix();
+    if (p) p.status = 'expired';
+    avisoExpiradoPendente = true;
+    abrirCardapio();
+  }
+
+  function abrirCartao() {
+    pedidoAtual.metodo = 'cartao';
+    document.getElementById('cartao-codigo').textContent = pedidoAtual.codigo;
+    document.getElementById('cartao-total').textContent = fmt(totalPedido(pedidoAtual));
+    document.getElementById('btn-pagar-cartao').textContent = 'Pagar ' + fmt(totalPedido(pedidoAtual)) + ' →';
+    document.getElementById('cartao-erro').style.display = 'none';
+    document.getElementById('btn-trocar-pix').style.display = 'none';
+    irPara('tela-cartao');
+  }
+
+  function pagarCartao() {
+    irPara('tela-processando');
+    setTimeout(() => {
+      pedidoAtual.status = 'paid';
+      pedidoAtual.hora = agoraHora();
+      abrirComprovante(pedidoAtual.codigo);
+    }, 1600);
+  }
+
+  function cartaoRecusado() {
+    irPara('tela-processando');
+    setTimeout(() => {
+      // Apenas a tentativa falha; o pedido continua aguardando pagamento
+      document.getElementById('cartao-erro').style.display = 'block';
+      document.getElementById('btn-trocar-pix').style.display = 'block';
+      document.getElementById('c-num').value = '';
+      irPara('tela-cartao');
+    }, 1200);
+  }
+
+  function trocarParaPix() { selecionarMetodo('pix'); abrirPix(); }
+
+  // ------------------------------------------------------------------ comprovante
+  function abrirComprovante(codigo) {
+    pedidoAtual = pedidos.find(p => p.codigo === codigo);
+    renderizarComprovante();
+    irPara('tela-comprovante');
+  }
+
+  const QR_SVG = `<svg class="qr-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-label="QR Code do pedido">
+    <rect width="100" height="100" fill="white"/>
+    <rect x="5" y="5" width="35" height="35" fill="none" stroke="#2B6CB0" stroke-width="3"/><rect x="12" y="12" width="21" height="21" fill="#2B6CB0"/>
+    <rect x="60" y="5" width="35" height="35" fill="none" stroke="#2B6CB0" stroke-width="3"/><rect x="67" y="12" width="21" height="21" fill="#2B6CB0"/>
+    <rect x="5" y="60" width="35" height="35" fill="none" stroke="#2B6CB0" stroke-width="3"/><rect x="12" y="67" width="21" height="21" fill="#2B6CB0"/>
+    <rect x="60" y="60" width="8" height="8" fill="#2B6CB0"/><rect x="72" y="60" width="8" height="8" fill="#2B6CB0"/><rect x="84" y="60" width="8" height="8" fill="#2B6CB0"/>
+    <rect x="60" y="72" width="8" height="8" fill="#2B6CB0"/><rect x="84" y="72" width="8" height="8" fill="#2B6CB0"/><rect x="60" y="84" width="8" height="8" fill="#2B6CB0"/>
+    <rect x="72" y="84" width="8" height="8" fill="#2B6CB0"/><rect x="84" y="84" width="8" height="8" fill="#2B6CB0"/><rect x="45" y="5" width="8" height="8" fill="#2B6CB0"/>
+    <rect x="45" y="17" width="8" height="8" fill="#2B6CB0"/><rect x="45" y="29" width="8" height="8" fill="#2B6CB0"/><rect x="45" y="45" width="8" height="8" fill="#2B6CB0"/>
+    <rect x="5" y="45" width="8" height="8" fill="#2B6CB0"/><rect x="17" y="45" width="8" height="8" fill="#2B6CB0"/><rect x="29" y="45" width="8" height="8" fill="#2B6CB0"/></svg>`;
+
+  function renderizarComprovante() {
+    const p = pedidoAtual;
+    if (!p) return;
+    const corpo = document.getElementById('comprovante-corpo');
+    const estornado = totalEstornado(p);
+    const status = {
+      paid:       { cls: 'st-aguardando', txt: '<div class="pulse"></div>Aguardando retirada' },
+      in_service: { cls: 'st-atendimento', txt: `<div class="pulse"></div>Em atendimento · ${p.operador ? p.operador.balcao : ''}` },
+      collected:  { cls: 'st-retirado', txt: '✓ Retirado' },
+      refunded:   { cls: 'st-estornado', txt: '↩ Pedido estornado' },
+    }[p.status];
+
+    let bloco;
+    if (p.status === 'paid' || p.status === 'in_service') {
+      bloco = `<div class="qr-wrapper">
+          <div class="qr-label">Mostre no balcão</div>${QR_SVG}
+          <div class="qr-codigo">${p.codigo}</div>
+          <div class="qr-validade">Válido até 02:00 (fim do evento)</div>
+        </div>
+        <div class="info-instrucao">Mostre o QR Code em qualquer balcão. <strong>Dica: tire um print desta tela</strong> para garantir o acesso ao QR Code.</div>`;
+    } else if (p.status === 'collected') {
+      bloco = `<div class="qr-wrapper"><div class="qr-final-icon">✅</div>
+        <div class="qr-final-texto" style="color:var(--verde-ok);">Pedido retirado às ${p.horaEntrega}.<br>Este QR Code não vale mais.</div></div>`;
+    } else {
+      bloco = `<div class="qr-wrapper"><div class="qr-final-icon">↩️</div>
+        <div class="qr-final-texto" style="color:var(--erro);">O valor foi devolvido para o seu ${p.metodo === 'pix' ? 'Pix' : 'cartão'}.<br>Este QR Code não vale mais.</div></div>`;
+    }
+
+    const itens = p.itens.map(it => {
+      const linhas = [];
+      const ok = it.qty - (it.estornado || 0);
+      if (ok > 0) linhas.push(`<div class="linha-item"><span>${ok}x ${it.nome}</span><span class="valor">${fmt(ok * it.preco)}</span></div>`);
+      if (it.estornado) linhas.push(`<div class="linha-item estornado"><span>${it.estornado}x ${it.nome}</span><span class="valor">estornado</span></div>`);
+      return linhas.join('');
+    }).join('');
+
+    corpo.innerHTML = `
+      <div class="check-circle">${p.status === 'refunded' ? '↩️' : '✅'}</div>
+      <div class="comprovante-titulo">${p.status === 'refunded' ? 'Pedido estornado' : 'Pagamento confirmado!'}</div>
+      <div class="status-badge ${status.cls}">${status.txt}</div>
+      ${bloco}
+      <div class="box" style="width:100%;">
+        ${itens}
+        ${estornado > 0 ? `<div class="linha-item"><span>Devolvido ao seu ${p.metodo === 'pix' ? 'Pix' : 'cartão'}</span><span class="valor" style="color:var(--erro);">− ${fmt(estornado)}</span></div>` : ''}
+      </div>
+      <div class="comp-horario">Pedido ${p.codigo} · pago às ${p.hora} via ${p.metodo === 'pix' ? 'Pix' : 'Cartão'}</div>
+      <button class="btn-principal" onclick="abrirCardapio()">Fazer novo pedido</button>`;
+  }
+
+  // ------------------------------------------------------------------ operador
+  const CODIGO_VALIDO = 'K7X2P9';
+
+  function entrarOperador() {
+    const erro = document.getElementById('login-erro');
+    const cod = document.getElementById('codigo-op').value;
+    if (tentativasLogin >= 5) return;
+    if (cod === CODIGO_VALIDO) {
+      tentativasLogin = 0;
+      erro.style.display = 'none';
+      renderizarHistoricoOp();
+      irParaOp('tela-operador');
+      if (atendimento) abrirAtendimento(); // retomada do atendimento em aberto
+      return;
+    }
+    tentativasLogin++;
+    erro.style.display = 'block';
+    if (tentativasLogin >= 5) {
+      erro.innerHTML = '<strong>Muitas tentativas</strong>Aguarde 5 minutos para tentar novamente.';
+      document.getElementById('btn-entrar').disabled = true;
+      setTimeout(() => { tentativasLogin = 0; document.getElementById('btn-entrar').disabled = false; erro.style.display = 'none'; }, 8000);
+    } else {
+      erro.innerHTML = `<strong>Código inválido ou expirado</strong>Confira o código com o estabelecimento. Tentativa ${tentativasLogin} de 5.`;
+    }
+  }
+
+  function abrirScanner() {
+    if (atendimento) { abrirAtendimento(); return; }
+    document.getElementById('scanner-overlay').classList.add('ativo');
+  }
+  function fecharScanner() { document.getElementById('scanner-overlay').classList.remove('ativo'); }
+
+  function simularLeitura() {
+    fecharScanner();
+    let p = pedidos.find(x => x.status === 'paid');
+    if (!p) {
+      if (pedidos.some(x => x.status === 'awaiting_payment')) { mostrarErro('nao-pago'); return; }
+      if (pedidos.some(x => x.status === 'collected')) { mostrarErro('usado'); return; }
+      // sem pedidos criados no lado do consumidor: gera um pedido de exemplo já pago
+      p = { codigo: 'GH7-382', itens: [{ id:'skol', nome:'Skol Lata 350ml', qty:2, preco:8, estornado:0 }, { id:'caip', nome:'Caipirinha', qty:1, preco:18, estornado:0 }],
+            status: 'paid', metodo: 'pix', hora: agoraHora(), operador: null };
+      pedidos.unshift(p);
+    }
+    // reserva atômica: paid -> in_service
+    p.status = 'in_service';
+    p.operador = { nome: 'João Silva', balcao: 'Bar Principal' };
+    atendimento = p;
+    marcados = new Set();
+    abrirAtendimento();
+  }
+
+  function abrirAtendimento() {
+    const p = atendimento;
+    document.getElementById('op-codigo-lido').textContent = p.codigo;
+    const box = document.getElementById('op-itens-lidos');
+    box.innerHTML = p.itens.map(it => {
+      const restante = it.qty - (it.estornado || 0);
+      if (restante <= 0) return '';
+      const m = marcados.has(it.id);
+      return `<div class="item-op ${m ? 'marcado' : ''}">
+        <span>${restante}x ${it.nome}</span>
+        <button class="btn-esgotou" onclick="alternarMarcado('${it.id}')">${m ? '✕ Acabou' : 'Acabou'}</button></div>`;
+    }).join('');
+    const valorMarcado = p.itens.filter(it => marcados.has(it.id)).reduce((a, it) => a + (it.qty - (it.estornado || 0)) * it.preco, 0);
+    const btn = document.getElementById('btn-estornar-marcados');
+    btn.style.display = marcados.size ? 'block' : 'none';
+    btn.textContent = `Estornar itens que acabaram (${fmt(valorMarcado)})`;
+    document.getElementById('btn-confirmar').disabled = marcados.size > 0;
+    const resumo = document.getElementById('estorno-resumo');
+    const est = totalEstornado(p);
+    resumo.style.display = est > 0 ? 'block' : 'none';
+    resumo.innerHTML = `<strong>Estorno registrado</strong>${fmt(est)} devolvido ao cliente. Os itens foram marcados como esgotados no cardápio. Entregue o restante e confirme.`;
+    document.getElementById('scan-resultado').classList.add('ativo');
+    atualizarTelaUsuario();
+  }
+
+  function alternarMarcado(id) {
+    marcados.has(id) ? marcados.delete(id) : marcados.add(id);
+    abrirAtendimento();
+  }
+
+  function estornarMarcados() {
+    const p = atendimento;
+    p.itens.forEach(it => {
+      if (marcados.has(it.id)) {
+        it.estornado = it.qty;
+        const item = cardapio.find(c => c.id === it.id);
+        if (item) item.disponivel = false; // item esgotado deixa de ser vendido no evento
+      }
+    });
+    marcados = new Set();
+    if (p.itens.every(it => it.estornado >= it.qty)) { finalizarEstornoTotal(); return; }
+    mostrarToast('operador', 'Estorno registrado. Entregue o restante.');
+    abrirAtendimento();
+  }
+
+  function estornarTudo() {
+    if (!confirm('Estornar o pedido inteiro? O valor total volta para o cliente.')) return;
+    atendimento.itens.forEach(it => { it.estornado = it.qty; });
+    finalizarEstornoTotal();
+  }
+
+  function finalizarEstornoTotal() {
+    const p = atendimento;
+    p.status = 'refunded';
+    entregues.unshift({ codigo: p.codigo, hora: agoraHora(), itens: p.itens, tipo: 'estorno' });
+    encerrarAtendimento('Pedido estornado integralmente.');
+  }
+
+  function confirmarEntrega() {
+    const p = atendimento;
+    p.status = 'collected';
+    p.horaEntrega = agoraHora();
+    entregues.unshift({ codigo: p.codigo, hora: p.horaEntrega, itens: p.itens, tipo: totalEstornado(p) > 0 ? 'parcial' : 'entregue' });
+    encerrarAtendimento('Entrega confirmada. Pronto para o próximo pedido.');
+  }
+
+  function cancelarAtendimento() {
+    // devolve o pedido para paid, sem estorno
+    atendimento.status = 'paid';
+    atendimento.operador = null;
+    encerrarAtendimento('Atendimento cancelado. O cliente ainda pode retirar o pedido.');
+  }
+
+  function encerrarAtendimento(msg) {
+    atendimento = null;
+    marcados = new Set();
+    document.getElementById('scan-resultado').classList.remove('ativo');
+    renderizarHistoricoOp();
+    mostrarToast('operador', msg);
+    atualizarTelaUsuario();
+  }
+
+  function renderizarHistoricoOp() {
+    const lista = document.getElementById('op-historico-lista');
+    if (!entregues.length) {
+      lista.innerHTML = '<div style="color:var(--cinza-sub);font-size:13px;text-align:center;padding:20px 0;">Nenhum atendimento concluído ainda</div>';
+      return;
+    }
+    const tags = {
+      entregue: '<div class="op-tag" style="color:var(--verde-ok);">✅ Entregue</div>',
+      parcial:  '<div class="op-tag" style="color:var(--amarelo);">✅ Entregue com estorno parcial</div>',
+      estorno:  '<div class="op-tag" style="color:var(--erro);">↩ Estornado</div>',
+    };
+    lista.innerHTML = entregues.map(e => `<div class="op-card">
+      <div class="op-card-topo"><span class="op-codigo">${e.codigo}</span><span class="op-horario">${e.hora}</span></div>
+      <div class="op-itens">${e.itens.map(it => `${it.qty}x ${it.nome}${it.estornado ? ` <span style="color:var(--erro);">(${it.estornado} estornado)</span>` : ''}`).join('<br>')}</div>
+      ${tags[e.tipo]}</div>`).join('');
+  }
+
+  const ERROS = {
+    'usado':        { icone: '🚫', titulo: 'QR Code já utilizado', texto: 'Este pedido já foi retirado. Não entregue os itens novamente.' },
+    'outro-balcao': { icone: '⏳', titulo: 'Pedido em atendimento', texto: 'Este pedido já está sendo atendido no Bar Externo. Oriente o cliente a aguardar lá.' },
+    'nao-pago':     { icone: '🕐', titulo: 'Pagamento não confirmado', texto: 'O pagamento deste pedido ainda não foi aprovado. Peça ao cliente para concluir o pagamento.' },
+    'encerrado':    { icone: '🔒', titulo: 'Evento encerrado', texto: 'Este QR Code expirou com o fim do evento e não pode mais ser usado.' },
+  };
+  function mostrarErro(tipo) {
+    fecharScanner();
+    const e = ERROS[tipo];
+    document.getElementById('erro-icone').textContent = e.icone;
+    document.getElementById('erro-titulo').textContent = e.titulo;
+    document.getElementById('erro-texto').textContent = e.texto;
+    document.getElementById('erro-overlay').classList.add('ativo');
+  }
+  function fecharErro() { document.getElementById('erro-overlay').classList.remove('ativo'); }
+
+  renderizarCardapio();
+  renderizarHistoricoOp();
+</script>
+</body>
+</html>

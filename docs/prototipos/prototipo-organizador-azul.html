@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EventoPedido — Painel do Estabelecimento</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --azul: #2B6CB0;
+    --azul-esc: #1A4F8A;
+    --azul-claro: #EBF4FF;
+    --azul-medio: #63B3ED;
+    --azul-borda: #BEE3F8;
+    --branco: #FFFFFF;
+    --cinza-texto: #2D3748;
+    --cinza-sub: #718096;
+    --cinza-borda: #E2E8F0;
+    --cinza-fundo: #F7FAFC;
+    --verde: #38A169;
+    --amarelo: #D69E2E;
+    --erro: #E53E3E;
+  }
+
+  body { font-family: 'Inter', sans-serif; background: var(--cinza-fundo); color: var(--cinza-texto); min-height: 100vh; }
+
+  /* AUTENTICAÇÃO */
+  .auth { display: none; min-height: 100vh; align-items: center; justify-content: center; padding: 32px 16px; }
+  .auth.ativa { display: flex; }
+  .auth-card { background: var(--branco); border: 1px solid var(--cinza-borda); border-radius: 20px; padding: 32px; width: 460px; max-width: 100%; display: flex; flex-direction: column; gap: 18px; box-shadow: 0 10px 40px rgba(43,108,176,0.08); }
+  .auth-card.largo { width: 620px; }
+  .auth-logo { font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 700; color: var(--azul); letter-spacing: 0.06em; text-transform: uppercase; }
+  .auth-titulo { font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 700; }
+  .auth-sub { font-size: 14px; color: var(--cinza-sub); line-height: 1.5; }
+  .auth-link { background: none; border: none; color: var(--azul); font-weight: 600; cursor: pointer; font-family: inherit; font-size: 14px; }
+  .form-secao { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--azul); margin-top: 4px; }
+  .seg { display: flex; gap: 8px; }
+  .seg button { flex: 1; padding: 10px; border-radius: 10px; border: 1.5px solid var(--cinza-borda); background: var(--branco); font-weight: 600; font-size: 14px; cursor: pointer; font-family: inherit; color: var(--cinza-texto); }
+  .seg button.sel { border-color: var(--azul); color: var(--azul); background: var(--azul-claro); }
+  .slug-preview { font-size: 12px; color: var(--cinza-sub); margin-top: 2px; }
+  .slug-preview strong { color: var(--azul); font-family: 'Space Grotesk', sans-serif; }
+  .hint { font-size: 12px; color: var(--cinza-sub); line-height: 1.5; }
+
+  .layout { display: none; min-height: 100vh; }
+  .layout.ativa { display: flex; }
+
+  /* SIDEBAR */
+  .sidebar { width: 220px; background: var(--azul); display: flex; flex-direction: column; padding: 24px 0; position: fixed; top: 0; left: 0; bottom: 0; overflow-y: auto; }
+  .sidebar-logo { font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 700; color: var(--branco); letter-spacing: 0.06em; text-transform: uppercase; padding: 0 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.15); margin-bottom: 16px; }
+  .sidebar-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.5); padding: 8px 20px 4px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 20px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.7); cursor: pointer; border: none; background: none; width: 100%; text-align: left; transition: all 0.15s; border-right: 3px solid transparent; font-family: inherit; }
+  .nav-item:hover { color: var(--branco); background: rgba(255,255,255,0.1); }
+  .nav-item.ativo { color: var(--branco); background: rgba(255,255,255,0.15); border-right-color: var(--branco); }
+  .nav-item .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+  .sidebar-bottom { margin-top: auto; padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.15); font-size: 13px; color: rgba(255,255,255,0.6); }
+  .sidebar-user { font-weight: 600; color: var(--branco); font-size: 14px; }
+  .sidebar-sair { background: none; border: none; color: rgba(255,255,255,0.8); font-size: 13px; cursor: pointer; margin-top: 8px; padding: 0; font-family: inherit; text-decoration: underline; }
+
+  /* MAIN */
+  .main { margin-left: 220px; flex: 1; padding: 32px; display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+  .tela { display: none; flex-direction: column; gap: 24px; animation: fadeIn 0.2s ease; }
+  .tela.ativa { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  .topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+  .page-titulo { font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 700; letter-spacing: 0.01em; color: var(--cinza-texto); }
+  .page-sub { font-size: 14px; color: var(--cinza-sub); margin-top: 4px; }
+
+  /* BANNER DE APROVAÇÃO */
+  .banner { display: flex; align-items: center; gap: 14px; border-radius: 14px; padding: 14px 18px; font-size: 14px; line-height: 1.5; border: 1px solid; }
+  .banner-pendente { background: rgba(214,158,46,0.08); border-color: rgba(214,158,46,0.35); color: #975A16; }
+  .banner-aprovado { background: rgba(56,161,105,0.08); border-color: rgba(56,161,105,0.35); color: #276749; }
+  .banner .banner-texto { flex: 1; }
+  .banner strong { display: block; }
+
+  /* BOTÕES */
+  .btn { padding: 10px 20px; border-radius: 10px; border: none; font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s; letter-spacing: 0.02em; white-space: nowrap; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-azul { background: var(--azul); color: var(--branco); box-shadow: 0 2px 8px rgba(43,108,176,0.2); }
+  .btn-azul:hover:not(:disabled) { background: var(--azul-esc); }
+  .btn-verde { background: var(--verde); color: var(--branco); }
+  .btn-outline { background: var(--branco); color: var(--cinza-texto); border: 1px solid var(--cinza-borda); }
+  .btn-outline:hover:not(:disabled) { border-color: var(--azul); color: var(--azul); }
+  .btn-ghost { background: transparent; color: var(--cinza-sub); border: none; font-family: 'Inter', sans-serif; }
+  .btn-ghost:hover { color: var(--cinza-texto); }
+  .btn-sm { padding: 7px 14px; font-size: 13px; }
+  .btn-erro { background: rgba(229,62,62,0.08); color: var(--erro); border: 1px solid rgba(229,62,62,0.2); }
+  .btn-erro:hover { background: rgba(229,62,62,0.15); }
+  .btn-sim { background: none; border: 1px dashed currentColor; color: inherit; border-radius: 10px; padding: 8px 12px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; }
+
+  /* STATS */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .stat-card { background: var(--branco); border: 1px solid var(--cinza-borda); border-radius: 14px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+  .stat-card-azul { border-top: 3px solid var(--azul); }
+  .stat-card-verde { border-top: 3px solid var(--verde); }
+  .stat-card-amarelo { border-top: 3px solid var(--amarelo); }
+  .stat-card-medio { border-top: 3px solid var(--azul-medio); }
+  .stat-label { font-size: 12px; color: var(--cinza-sub); font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 8px; }
+  .stat-valor { font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 700; }
+  .stat-sub { font-size: 12px; color: var(--cinza-sub); margin-top: 4px; }
+  .c-azul { color: var(--azul); } .c-verde { color: var(--verde); } .c-amarelo { color: var(--amarelo); } .c-medio { color: var(--azul-medio); }
+
+  /* CARD BOX */
+  .card-box { background: var(--branco); border: 1px solid var(--cinza-borda); border-radius: 16px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+  .card-box-header { padding: 18px 20px; border-bottom: 1px solid var(--cinza-borda); display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .card-box-titulo { font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 700; color: var(--cinza-texto); }
+  .tabela-wrap { overflow-x: auto; }
+
+  table { width: 100%; border-collapse: collapse; }
+  th { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cinza-sub); padding: 12px 20px; text-align: left; border-bottom: 1px solid var(--cinza-borda); background: var(--cinza-fundo); white-space: nowrap; }
+  td { padding: 14px 20px; font-size: 14px; border-bottom: 1px solid var(--cinza-borda); color: var(--cinza-texto); }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--azul-claro); }
+
+  .badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+  .badge-azul { background: var(--azul-claro); color: var(--azul); border: 1px solid var(--azul-borda); }
+  .badge-amarelo { background: rgba(214,158,46,0.1); color: var(--amarelo); border: 1px solid rgba(214,158,46,0.3); }
+  .badge-sub { background: var(--cinza-fundo); color: var(--cinza-sub); border: 1px solid var(--cinza-borda); }
+  .badge-verde { background: rgba(56,161,105,0.1); color: var(--verde); border: 1px solid rgba(56,161,105,0.3); }
+  .badge-erro { background: rgba(229,62,62,0.08); color: var(--erro); border: 1px solid rgba(229,62,62,0.25); }
+
+  .pulse-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: pulse 1.4s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
+
+  /* FORM */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+  label { font-size: 12px; font-weight: 600; color: var(--cinza-sub); letter-spacing: 0.04em; text-transform: uppercase; }
+  input, select, textarea { background: var(--cinza-fundo); border: 1px solid var(--cinza-borda); border-radius: 10px; padding: 12px 14px; color: var(--cinza-texto); font-family: 'Inter', sans-serif; font-size: 14px; outline: none; transition: border-color 0.15s; width: 100%; }
+  input:focus, select:focus, textarea:focus { border-color: var(--azul); box-shadow: 0 0 0 3px rgba(43,108,176,0.1); }
+
+  /* CARDÁPIO */
+  .cardapio-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .item-card-org { background: var(--cinza-fundo); border: 1px solid var(--cinza-borda); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 8px; transition: all 0.15s; }
+  .item-card-org:hover { border-color: var(--azul-medio); box-shadow: 0 2px 8px rgba(43,108,176,0.1); }
+  .item-card-org.esgotado { opacity: 0.75; }
+  .item-card-org.esgotado .item-emoji-org { filter: grayscale(1); }
+  .item-emoji-org { font-size: 32px; }
+  .item-nome-org { font-weight: 600; font-size: 15px; color: var(--cinza-texto); }
+  .item-cat-org { font-size: 12px; color: var(--cinza-sub); }
+  .item-preco-org { font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 700; color: var(--azul); margin-top: 4px; }
+  .item-acoes { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
+  .toggle { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; cursor: pointer; user-select: none; background: none; border: none; font-family: inherit; color: var(--cinza-texto); padding: 0; }
+  .toggle-trilho { width: 36px; height: 20px; border-radius: 20px; background: var(--cinza-borda); position: relative; transition: background 0.15s; flex-shrink: 0; }
+  .toggle-trilho::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--branco); transition: left 0.15s; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+  .toggle.on .toggle-trilho { background: var(--verde); }
+  .toggle.on .toggle-trilho::after { left: 18px; }
+  .item-nota { font-size: 11px; color: var(--erro); }
+
+  .menus-layout { display: grid; grid-template-columns: 260px 1fr; gap: 20px; align-items: start; }
+  .menu-lista { display: flex; flex-direction: column; gap: 8px; padding: 12px; }
+  .menu-opcao { text-align: left; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--cinza-borda); background: var(--cinza-fundo); cursor: pointer; font-family: inherit; }
+  .menu-opcao.sel { border-color: var(--azul); background: var(--azul-claro); }
+  .menu-opcao-nome { font-weight: 600; font-size: 14px; color: var(--cinza-texto); }
+  .menu-opcao-info { font-size: 12px; color: var(--cinza-sub); margin-top: 2px; }
+
+  /* OPERADORES */
+  .op-list { display: flex; flex-direction: column; gap: 10px; }
+  .op-row { background: var(--cinza-fundo); border: 1px solid var(--cinza-borda); border-radius: 12px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .op-row.inativo { opacity: 0.6; }
+  .op-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--azul-claro); border: 1.5px solid var(--azul-borda); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .op-info { flex: 1; min-width: 160px; }
+  .op-nome { font-weight: 600; font-size: 14px; color: var(--cinza-texto); }
+  .op-tel { font-size: 12px; color: var(--cinza-sub); margin-top: 2px; }
+  .op-acoes { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+  .codigo-destaque { font-family: 'Space Grotesk', sans-serif; font-size: 40px; font-weight: 700; letter-spacing: 0.3em; color: var(--azul); text-align: center; padding: 18px; background: var(--azul-claro); border: 1.5px dashed var(--azul-borda); border-radius: 14px; }
+
+  /* LINK/QR */
+  .link-box { background: var(--cinza-fundo); border: 1px solid var(--cinza-borda); border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .link-texto { font-size: 13px; color: var(--azul); font-family: 'Space Grotesk', sans-serif; word-break: break-all; }
+  .qr-export-box { background: var(--cinza-fundo); border: 2px dashed var(--cinza-borda); border-radius: 16px; padding: 32px; display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; }
+  .qr-export-svg { width: 160px; height: 160px; background: white; border-radius: 12px; padding: 12px; }
+  .bloqueado { position: relative; }
+  .bloqueado-capa { position: absolute; inset: 0; background: rgba(247,250,252,0.92); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center; padding: 24px; border-radius: 16px; font-size: 14px; color: var(--cinza-sub); }
+  .bloqueado-capa strong { color: var(--cinza-texto); font-family: 'Space Grotesk', sans-serif; font-size: 16px; }
+
+  /* PEDIDOS */
+  .pedidos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .pedido-live { background: var(--branco); border: 1px solid var(--cinza-borda); border-radius: 12px; padding: 16px; }
+  .pedido-live-topo { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .pedido-live-cod { font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 700; color: var(--azul); letter-spacing: 0.1em; }
+  .pedido-live-hora { font-size: 12px; color: var(--cinza-sub); }
+  .pedido-live-itens { font-size: 13px; color: var(--cinza-sub); line-height: 1.6; margin-bottom: 10px; }
+  .pedido-live-total { font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 700; color: var(--azul); }
+  .pedido-live-rodape { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+  /* MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; padding: 16px; }
+  .modal-overlay.ativo { display: flex; }
+  .modal { background: var(--branco); border: 1px solid var(--cinza-borda); border-radius: 20px; padding: 28px; width: 540px; max-width: 100%; max-height: 92vh; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; animation: fadeIn 0.2s ease; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+  .modal-titulo { font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 700; color: var(--cinza-texto); }
+  .modal-acoes { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+  .info-box { background: var(--azul-claro); border: 1px solid var(--azul-borda); border-radius: 10px; padding: 12px 16px; font-size: 13px; color: var(--cinza-sub); line-height: 1.5; }
+  .info-box strong { color: var(--azul); }
+  .alerta-box { background: rgba(214,158,46,0.08); border: 1px solid rgba(214,158,46,0.35); border-radius: 10px; padding: 12px 16px; font-size: 13px; color: #975A16; line-height: 1.5; }
+
+  #toast { display:none; position:fixed; bottom:28px; right:28px; left:auto; background:var(--azul); color:var(--branco); padding:12px 20px; border-radius:10px; font-weight:600; font-size:14px; font-family:'Space Grotesk',sans-serif; animation:fadeIn 0.2s ease; z-index:999; box-shadow:0 4px 12px rgba(43,108,176,0.3); max-width: calc(100% - 32px); }
+
+  /* RESPONSIVO */
+  @media (max-width: 900px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .cardapio-grid { grid-template-columns: repeat(2, 1fr); }
+    .menus-layout { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 700px) {
+    .layout.ativa { flex-direction: column; }
+    .sidebar { position: static; width: 100%; padding: 12px 0; flex-direction: row; flex-wrap: wrap; }
+    .sidebar-logo { width: 100%; padding: 0 16px 12px; margin-bottom: 8px; }
+    .sidebar-label, .sidebar-bottom { display: none; }
+    .nav-item { width: auto; padding: 8px 14px; border-right: none; border-radius: 8px; margin: 2px 4px; }
+    .main { margin-left: 0; padding: 20px 16px; }
+    .stats-grid, .cardapio-grid, .pedidos-grid, .form-grid, .grid-acesso { grid-template-columns: 1fr !important; }
+    .auth-card { padding: 24px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================ LOGIN ============================ -->
+<div class="auth ativa" id="auth-login">
+  <div class="auth-card">
+    <div class="auth-logo">EventoPedido</div>
+    <div>
+      <div class="auth-titulo">Entrar no painel</div>
+      <div class="auth-sub">Acesso do estabelecimento</div>
+    </div>
+    <div class="form-group"><label for="l-email">E-mail</label><input id="l-email" type="email" value="contato@bardoze.com.br"></div>
+    <div class="form-group"><label for="l-senha">Senha</label><input id="l-senha" type="password" value="senha-segura"></div>
+    <button class="btn btn-azul" onclick="entrar()">Entrar</button>
+    <div class="auth-sub" style="text-align:center;">Ainda não tem conta? <button class="auth-link" onclick="mostrarAuth('auth-cadastro')">Cadastre seu estabelecimento</button></div>
+  </div>
+</div>
+
+<!-- ============================ CADASTRO ============================ -->
+<div class="auth" id="auth-cadastro">
+  <div class="auth-card largo">
+    <div class="auth-logo">EventoPedido</div>
+    <div>
+      <div class="auth-titulo">Cadastrar estabelecimento</div>
+      <div class="auth-sub">Sem mensalidade: a plataforma cobra 5% de cada pedido. Após o cadastro, nossa equipe confere os dados e libera a publicação de eventos.</div>
+    </div>
+    <div class="form-secao">Acesso</div>
+    <div class="form-grid">
+      <div class="form-group"><label for="c-email">E-mail</label><input id="c-email" type="email" placeholder="contato@seubar.com.br"></div>
+      <div class="form-group"><label for="c-senha">Senha</label><input id="c-senha" type="password" placeholder="Mínimo de 8 caracteres"></div>
+    </div>
+    <div class="form-secao">Estabelecimento</div>
+    <div class="form-grid">
+      <div class="form-group full"><label for="c-nome">Nome do estabelecimento</label><input id="c-nome" value="Bar do Zé" oninput="sugerirSlug()"></div>
+      <div class="form-group full">
+        <label>Documento</label>
+        <div class="seg"><button id="doc-cnpj" class="sel" onclick="tipoDoc('cnpj')">CNPJ</button><button id="doc-cpf" onclick="tipoDoc('cpf')">CPF (pessoa física)</button></div>
+      </div>
+      <div class="form-group full"><label for="c-doc" id="c-doc-label">CNPJ</label><input id="c-doc" placeholder="00.000.000/0000-00" inputmode="numeric"></div>
+      <div class="form-group full">
+        <label for="c-slug">Endereço do seu link</label>
+        <input id="c-slug" value="bar-do-ze" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]/g,'');atualizarSlugPreview()">
+        <div class="slug-preview">eventopedido.com.br/<strong id="slug-preview">bar-do-ze</strong> · depois da aprovação, não pode ser alterado (ele vai impresso no QR Code).</div>
+      </div>
+    </div>
+    <div class="form-secao">Dados bancários para receber</div>
+    <div class="form-grid">
+      <div class="form-group full"><label for="c-banco">Banco</label><select id="c-banco"><option>001 · Banco do Brasil</option><option>104 · Caixa</option><option>237 · Bradesco</option><option>260 · Nu Pagamentos</option><option>341 · Itaú</option></select></div>
+      <div class="form-group"><label for="c-ag">Agência</label><input id="c-ag" placeholder="0000"></div>
+      <div class="form-group"><label for="c-conta">Conta com dígito</label><input id="c-conta" placeholder="00000-0"></div>
+    </div>
+    <div class="info-box">🔒 Os dados bancários vão <strong>direto para o Pagar.me</strong>, que faz os repasses. Eles não ficam guardados na plataforma.</div>
+    <button class="btn btn-azul" onclick="cadastrar()">Criar conta</button>
+    <div class="auth-sub" style="text-align:center;">Já tem conta? <button class="auth-link" onclick="mostrarAuth('auth-login')">Entrar</button></div>
+  </div>
+</div>
+
+<!-- ============================ PAINEL ============================ -->
+<div class="layout" id="painel">
+  <aside class="sidebar">
+    <div class="sidebar-logo">EventoPedido</div>
+    <div class="sidebar-label">Geral</div>
+    <button class="nav-item ativo" data-tela="tela-dashboard" onclick="irPara('tela-dashboard')"><span class="nav-icon">📊</span> Dashboard</button>
+    <button class="nav-item" data-tela="tela-eventos" onclick="irPara('tela-eventos')"><span class="nav-icon">🎵</span> Meus Eventos</button>
+    <button class="nav-item" data-tela="tela-cardapios" onclick="irPara('tela-cardapios')"><span class="nav-icon">📋</span> Cardápios</button>
+    <button class="nav-item" data-tela="tela-acesso" onclick="irPara('tela-acesso')"><span class="nav-icon">🔗</span> Link & QR Code</button>
+    <div class="sidebar-label" style="margin-top:8px;">Evento ativo</div>
+    <button class="nav-item" data-tela="tela-itens-evento" onclick="irPara('tela-itens-evento')"><span class="nav-icon">🍺</span> Itens do Evento</button>
+    <button class="nav-item" data-tela="tela-operadores" onclick="irPara('tela-operadores')"><span class="nav-icon">👥</span> Operadores</button>
+    <button class="nav-item" data-tela="tela-pedidos" onclick="irPara('tela-pedidos')"><span class="nav-icon">🧾</span> Pedidos ao Vivo</button>
+    <button class="nav-item" data-tela="tela-estornos" onclick="irPara('tela-estornos')"><span class="nav-icon">↩️</span> Estornos</button>
+    <div class="sidebar-bottom">
+      <div class="sidebar-user">Bar do Zé</div>
+      <div style="margin-top:4px;">contato@bardoze.com.br</div>
+      <button class="sidebar-sair" onclick="sair()">Sair</button>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <div class="banner banner-pendente" id="banner-aprovacao">
+      <span style="font-size:22px;">⏳</span>
+      <div class="banner-texto"><strong>Cadastro em análise</strong>Você já pode montar cardápios, eventos e operadores. A publicação de eventos e o QR Code são liberados após a aprovação.</div>
+      <button class="btn-sim" onclick="aprovar()">Simular aprovação</button>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="tela ativa" id="tela-dashboard">
+      <div class="topbar">
+        <div>
+          <div class="page-titulo">Dashboard</div>
+          <div class="page-sub">Forró das Quartas · Hoje, 21h às 02h</div>
+        </div>
+        <button class="btn btn-outline" onclick="irPara('tela-pedidos')">Ver pedidos ao vivo →</button>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card stat-card-azul"><div class="stat-label">Faturamento</div><div class="stat-valor c-azul">R$ 1.822</div><div class="stat-sub">Hoje, já descontados R$ 18 de estornos</div></div>
+        <div class="stat-card stat-card-verde"><div class="stat-label">Pedidos pagos</div><div class="stat-valor c-verde">94</div><div class="stat-sub">Confirmados pelo Pagar.me</div></div>
+        <div class="stat-card stat-card-medio"><div class="stat-label">Ticket médio</div><div class="stat-valor c-medio">R$ 19,38</div><div class="stat-sub">Por pedido</div></div>
+        <div class="stat-card stat-card-amarelo"><div class="stat-label">Retirados</div><div class="stat-valor c-amarelo">81</div><div class="stat-sub">12 aguardando · 1 em atendimento</div></div>
+      </div>
+      <div class="card-box">
+        <div class="card-box-header">
+          <div class="card-box-titulo">Itens mais vendidos</div>
+          <span class="badge badge-azul"><span class="pulse-dot"></span> Ao vivo</span>
+        </div>
+        <div class="tabela-wrap">
+        <table>
+          <thead><tr><th>Item</th><th>Qtd vendida</th><th>Faturado</th></tr></thead>
+          <tbody>
+            <tr><td>🍺 Skol Lata 350ml</td><td>112</td><td style="color:var(--azul);font-weight:600;">R$ 896,00</td></tr>
+            <tr><td>🥃 Caipirinha</td><td>42</td><td style="color:var(--azul);font-weight:600;">R$ 756,00</td></tr>
+            <tr><td>🍻 Heineken Long Neck</td><td>28</td><td style="color:var(--azul);font-weight:600;">R$ 392,00</td></tr>
+            <tr><td>🧀 Carne de Sol c/ Macaxeira</td><td>12</td><td style="color:var(--azul);font-weight:600;">R$ 300,00</td></tr>
+            <tr><td>💧 Água Mineral 500ml</td><td>31</td><td style="color:var(--azul);font-weight:600;">R$ 155,00</td></tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- EVENTOS -->
+    <div class="tela" id="tela-eventos">
+      <div class="topbar">
+        <div><div class="page-titulo">Meus Eventos</div><div class="page-sub">O status muda sozinho conforme a publicação e os horários do evento</div></div>
+        <button class="btn btn-azul" onclick="abrirModal('modal-evento')">+ Novo evento</button>
+      </div>
+      <div class="card-box">
+        <div class="card-box-header"><div class="card-box-titulo">Eventos</div></div>
+        <div class="tabela-wrap">
+        <table>
+          <thead><tr><th>Evento</th><th>Início</th><th>Término</th><th>Pedidos</th><th>Faturamento</th><th>Status</th><th></th></tr></thead>
+          <tbody id="tabela-eventos"></tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARDÁPIOS REUTILIZÁVEIS -->
+    <div class="tela" id="tela-cardapios">
+      <div class="topbar">
+        <div><div class="page-titulo">Cardápios</div><div class="page-sub">Modelos reutilizáveis. Ao criar um evento, os itens do cardápio escolhido são copiados para ele.</div></div>
+        <button class="btn btn-azul" onclick="novoCardapio()">+ Novo cardápio</button>
+      </div>
+      <div class="menus-layout">
+        <div class="card-box">
+          <div class="card-box-header"><div class="card-box-titulo">Seus cardápios</div></div>
+          <div class="menu-lista" id="menu-lista"></div>
+        </div>
+        <div class="card-box">
+          <div class="card-box-header">
+            <div class="card-box-titulo" id="menu-titulo">—</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-outline btn-sm" onclick="renomearCardapio()">Renomear</button>
+              <button class="btn btn-erro btn-sm" onclick="excluirCardapio()">Excluir</button>
+              <button class="btn btn-azul btn-sm" onclick="abrirModalItem('modelo')">+ Adicionar item</button>
+            </div>
+          </div>
+          <div style="padding:16px;display:flex;flex-direction:column;gap:12px;">
+            <div class="info-box">Alterar ou excluir este cardápio <strong>não afeta eventos já criados</strong>, nem o que está acontecendo agora.</div>
+            <div class="cardapio-grid" id="menu-itens"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ITENS DO EVENTO -->
+    <div class="tela" id="tela-itens-evento">
+      <div class="topbar">
+        <div><div class="page-titulo">Itens do Evento</div><div class="page-sub">Forró das Quartas · copiado do “Cardápio Forró”</div></div>
+        <button class="btn btn-azul" onclick="abrirModalItem('evento')">+ Item só para este evento</button>
+      </div>
+      <div class="info-box">Mudanças aqui valem <strong>só para este evento</strong>. Quando um operador marca um item como esgotado no balcão, ele aparece desligado aqui. Se chegar reposição, é só ligar de novo.</div>
+      <div id="itens-evento"></div>
+    </div>
+
+    <!-- OPERADORES -->
+    <div class="tela" id="tela-operadores">
+      <div class="topbar">
+        <div><div class="page-titulo">Operadores</div><div class="page-sub">Forró das Quartas · acesso até 02:00</div></div>
+        <button class="btn btn-azul" onclick="abrirModalOperador()">+ Adicionar operador</button>
+      </div>
+      <div class="card-box">
+        <div class="card-box-header"><div class="card-box-titulo">Operadores do bar</div><span class="badge badge-azul" id="op-contagem">—</span></div>
+        <div style="padding:16px;"><div class="op-list" id="op-list"></div></div>
+      </div>
+      <div class="info-box">💡 Por segurança, o código de acesso aparece <strong>uma única vez</strong>, ao ser gerado. Se o operador perder o código, use “Gerar novo código”: o anterior deixa de funcionar na hora.</div>
+    </div>
+
+    <!-- LINK & QR -->
+    <div class="tela" id="tela-acesso">
+      <div class="topbar"><div><div class="page-titulo">Link & QR Code</div><div class="page-sub">Fixos do estabelecimento: valem para todos os eventos</div></div></div>
+      <div class="bloqueado">
+        <div class="grid-acesso" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+          <div class="card-box" style="padding:24px;display:flex;flex-direction:column;gap:16px;">
+            <div class="card-box-titulo">🔗 Link do estabelecimento</div>
+            <div class="page-sub">Compartilhe nas redes sociais, WhatsApp ou e-mail antes do evento. Quem abrir antes do início vê “Começa às 21h”.</div>
+            <div class="link-box"><span class="link-texto">eventopedido.com.br/bar-do-ze</span><button class="btn btn-azul btn-sm" onclick="toast('✓ Link copiado!')">Copiar</button></div>
+            <hr style="border:none;border-top:1px solid var(--cinza-borda);">
+            <div class="card-box-titulo" style="font-size:14px;">📱 Onde divulgar</div>
+            <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;color:var(--cinza-sub);line-height:1.6;">
+              <div>• Cole o link no story do Instagram</div>
+              <div>• Envie no grupo do WhatsApp do evento</div>
+              <div>• Inclua no e-mail marketing pré-show</div>
+            </div>
+          </div>
+          <div class="card-box" style="padding:24px;display:flex;flex-direction:column;gap:16px;">
+            <div class="card-box-titulo">📷 QR Code fixo para impressão</div>
+            <div class="page-sub">Use em banners, totens e pulseiras. <strong>Não muda a cada evento.</strong></div>
+            <div class="qr-export-box">
+              <svg class="qr-export-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-label="QR Code do estabelecimento">
+                <rect width="100" height="100" fill="white"/>
+                <rect x="5" y="5" width="35" height="35" fill="none" stroke="#2B6CB0" stroke-width="3"/><rect x="12" y="12" width="21" height="21" fill="#2B6CB0"/>
+                <rect x="60" y="5" width="35" height="35" fill="none" stroke="#2B6CB0" stroke-width="3"/><rect x="67" y="12" width="21" height="21" fill="#2B6CB0"/>
+                <rect x="5" y="60" width="35" height="35" fill="none" stroke="#2B6CB0" stroke-width="3"/><rect x="12" y="67" width="21" height="21" fill="#2B6CB0"/>
+                <rect x="60" y="60" width="8" height="8" fill="#2B6CB0"/><rect x="72" y="60" width="8" height="8" fill="#2B6CB0"/><rect x="84" y="60" width="8" height="8" fill="#2B6CB0"/>
+                <rect x="60" y="72" width="8" height="8" fill="#2B6CB0"/><rect x="84" y="72" width="8" height="8" fill="#2B6CB0"/><rect x="60" y="84" width="8" height="8" fill="#2B6CB0"/>
+                <rect x="72" y="84" width="8" height="8" fill="#2B6CB0"/><rect x="84" y="84" width="8" height="8" fill="#2B6CB0"/><rect x="45" y="5" width="8" height="8" fill="#2B6CB0"/>
+                <rect x="45" y="17" width="8" height="8" fill="#2B6CB0"/><rect x="45" y="29" width="8" height="8" fill="#2B6CB0"/><rect x="45" y="45" width="8" height="8" fill="#2B6CB0"/>
+                <rect x="5" y="45" width="8" height="8" fill="#2B6CB0"/><rect x="17" y="45" width="8" height="8" fill="#2B6CB0"/><rect x="29" y="45" width="8" height="8" fill="#2B6CB0"/>
+              </svg>
+              <button class="btn btn-azul" onclick="toast('⬇ Download iniciado')">⬇ Baixar QR Code</button>
+              <div style="font-size:12px;color:var(--cinza-sub);">PNG em alta resolução para gráfica</div>
+            </div>
+          </div>
+        </div>
+        <div class="bloqueado-capa" id="capa-acesso">
+          <div style="font-size:32px;">🔒</div>
+          <strong>Disponível após a aprovação do cadastro</strong>
+          <div>Assim que a equipe conferir seus dados, o link e o QR Code fixo aparecem aqui.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PEDIDOS AO VIVO -->
+    <div class="tela" id="tela-pedidos">
+      <div class="topbar">
+        <div><div class="page-titulo">Pedidos ao Vivo</div><div class="page-sub">Forró das Quartas · atualiza sozinho</div></div>
+        <span class="badge badge-azul" style="align-self:center;"><span class="pulse-dot"></span> 12 aguardando retirada</span>
+      </div>
+      <div class="pedidos-grid">
+        <div class="pedido-live"><div class="pedido-live-topo"><span class="pedido-live-cod">GH7-382</span><span class="pedido-live-hora">22:14</span></div><div class="pedido-live-itens">2x Skol Lata 350ml<br>1x Heineken Long Neck</div><div class="pedido-live-rodape"><span class="badge badge-amarelo"><span class="pulse-dot"></span> Em atendimento · Bar Principal</span><span class="pedido-live-total">R$ 30,00</span></div></div>
+        <div class="pedido-live"><div class="pedido-live-topo"><span class="pedido-live-cod">MK3-915</span><span class="pedido-live-hora">22:17</span></div><div class="pedido-live-itens">1x Caipirinha<br>1x Carne de Sol c/ Macaxeira</div><div class="pedido-live-rodape"><span class="badge badge-azul">Aguardando retirada</span><span class="pedido-live-total">R$ 43,00</span></div></div>
+        <div class="pedido-live"><div class="pedido-live-topo"><span class="pedido-live-cod">PX1-447</span><span class="pedido-live-hora">22:19</span></div><div class="pedido-live-itens">3x Água Mineral 500ml</div><div class="pedido-live-rodape"><span class="badge badge-verde">✓ Retirado · 22:31 · Maria Santos</span><span class="pedido-live-total">R$ 15,00</span></div></div>
+        <div class="pedido-live"><div class="pedido-live-topo"><span class="pedido-live-cod">BZ9-201</span><span class="pedido-live-hora">22:21</span></div><div class="pedido-live-itens">2x Espetinho de Frango<br><span style="text-decoration:line-through;">1x Caipirinha</span> <span style="color:var(--erro);">estornado</span></div><div class="pedido-live-rodape"><span class="badge badge-verde">✓ Retirado · estorno parcial</span><span class="pedido-live-total">R$ 24,00</span></div></div>
+      </div>
+    </div>
+
+    <!-- ESTORNOS -->
+    <div class="tela" id="tela-estornos">
+      <div class="topbar">
+        <div><div class="page-titulo">Estornos</div><div class="page-sub">Forró das Quartas · o valor sempre volta para o meio de pagamento do cliente</div></div>
+        <span class="badge badge-erro" style="align-self:center;">Total estornado: R$ 18,00</span>
+      </div>
+      <div class="card-box">
+        <div class="tabela-wrap">
+        <table>
+          <thead><tr><th>Horário</th><th>Pedido</th><th>Itens</th><th>Valor</th><th>Operador</th><th>Motivo</th><th>Situação</th></tr></thead>
+          <tbody>
+            <tr><td>23:10</td><td><strong>BZ9-201</strong></td><td>1x Caipirinha</td><td style="color:var(--erro);font-weight:600;">R$ 18,00</td><td>João Silva · Bar Principal</td><td>Item esgotado</td><td><span class="badge badge-verde">Concluído</span></td></tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+      <div class="info-box">Conforme as regras do Pagar.me, a taxa do Pix e as taxas fixas do cartão não são devolvidas em estornos. Por isso, o item esgotado é desligado automaticamente no cardápio do evento.</div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ============================ MODAIS ============================ -->
+<div class="modal-overlay" id="modal-evento">
+  <div class="modal">
+    <div class="modal-titulo">Novo evento</div>
+    <div class="form-grid">
+      <div class="form-group full"><label for="e-nome">Nome do evento</label><input id="e-nome" type="text" placeholder="Ex: Forró das Quartas"></div>
+      <div class="form-group"><label for="e-data-ini">Data de início</label><input id="e-data-ini" type="date" value="2026-09-02" onchange="sugerirTermino()"></div>
+      <div class="form-group"><label for="e-hora-ini">Hora de início</label><input id="e-hora-ini" type="time" value="21:00" onchange="sugerirTermino()"></div>
+      <div class="form-group"><label for="e-data-fim">Data de término</label><input id="e-data-fim" type="date" value="2026-09-03"></div>
+      <div class="form-group"><label for="e-hora-fim">Hora de término</label><input id="e-hora-fim" type="time" value="02:00"></div>
+      <div class="form-group full"><div class="hint" id="hint-termino">Termina no dia seguinte, às 02:00. Os QR Codes e os códigos dos operadores expiram nesse horário.</div></div>
+      <div class="form-group full"><label for="e-cardapio">Cardápio</label><select id="e-cardapio"></select></div>
+    </div>
+    <div class="info-box">Os itens do cardápio escolhido são <strong>copiados</strong> para o evento. Você pode ajustá-los só para esta data, sem mudar o cardápio original.</div>
+    <div class="modal-acoes">
+      <button class="btn btn-outline" onclick="fecharModal('modal-evento')">Cancelar</button>
+      <button class="btn btn-azul" onclick="criarEvento()">Criar como rascunho →</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-item">
+  <div class="modal">
+    <div class="modal-titulo" id="modal-item-titulo">Adicionar item</div>
+    <div class="form-grid">
+      <div class="form-group full"><label for="i-nome">Nome do item</label><input id="i-nome" type="text" placeholder="Ex: Skol Lata 350ml"></div>
+      <div class="form-group"><label for="i-preco">Preço</label><input id="i-preco" type="text" placeholder="R$ 0,00"></div>
+      <div class="form-group"><label for="i-cat">Categoria</label><select id="i-cat"><option value="beverage">Bebidas</option><option value="snack">Petiscos</option><option value="food">Comidas</option></select></div>
+      <div class="form-group full"><label for="i-emoji">Emoji</label><input id="i-emoji" type="text" placeholder="🍺"></div>
+    </div>
+    <div class="modal-acoes">
+      <button class="btn btn-outline" onclick="fecharModal('modal-item')">Cancelar</button>
+      <button class="btn btn-azul" onclick="salvarItem()">Adicionar item</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-operador">
+  <div class="modal">
+    <div id="op-passo-1" style="display:flex;flex-direction:column;gap:20px;">
+      <div class="modal-titulo">Adicionar operador</div>
+      <div class="form-grid">
+        <div class="form-group full"><label for="o-nome">Nome</label><input id="o-nome" type="text" placeholder="Nome do operador"></div>
+        <div class="form-group full">
+          <label for="o-balcao">Balcão (opcional)</label>
+          <input id="o-balcao" list="balcoes" placeholder="Ex: Bar Principal">
+          <datalist id="balcoes"><option value="Bar Principal"><option value="Bar Externo"></datalist>
+          <div class="hint">Serve só para identificação no painel e nas mensagens do app. Qualquer operador pode atender qualquer pedido do evento.</div>
+        </div>
+      </div>
+      <div class="modal-acoes">
+        <button class="btn btn-outline" onclick="fecharModal('modal-operador')">Cancelar</button>
+        <button class="btn btn-azul" onclick="gerarCodigo()">Gerar código →</button>
+      </div>
+    </div>
+    <div id="op-passo-2" style="display:none;flex-direction:column;gap:18px;">
+      <div class="modal-titulo" id="op-codigo-titulo">Código de acesso</div>
+      <div class="codigo-destaque" id="op-codigo-gerado">K7X2P9</div>
+      <div class="alerta-box">⚠️ <strong>Este código aparece só agora.</strong> Envie para o operador antes de fechar. Ele expira ao fim do evento (02:00).</div>
+      <div class="modal-acoes" style="justify-content:stretch;">
+        <a class="btn btn-verde" id="btn-whatsapp" target="_blank" rel="noopener" style="flex:1;text-align:center;text-decoration:none;">Enviar pelo WhatsApp</a>
+        <button class="btn btn-outline" onclick="toast('✓ Código copiado!')">Copiar código</button>
+      </div>
+      <div class="modal-acoes"><button class="btn btn-azul" onclick="fecharModal('modal-operador')">Concluir</button></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast">✓ Link copiado!</div>
+
+<script>
+  // ------------------------------------------------------------------ estado
+  let aprovado = false;
+  const CAT_NOME = { beverage: 'Bebidas', snack: 'Petiscos', food: 'Comidas' };
+  const CAT_TITULO = { beverage: '🍺 Bebidas', snack: '🍢 Petiscos', food: '🍽️ Comidas' };
+
+  let cardapios = [
+    { id: 1, nome: 'Cardápio Forró', itens: [
+      { nome: 'Skol Lata 350ml', emoji: '🍺', cat: 'beverage', preco: 8 },
+      { nome: 'Heineken Long Neck', emoji: '🍻', cat: 'beverage', preco: 14 },
+      { nome: 'Caipirinha', emoji: '🥃', cat: 'beverage', preco: 18 },
+      { nome: 'Água Mineral 500ml', emoji: '💧', cat: 'beverage', preco: 5 },
+      { nome: 'Carne de Sol c/ Macaxeira', emoji: '🧀', cat: 'snack', preco: 25 },
+      { nome: 'Espetinho de Frango', emoji: '🍢', cat: 'snack', preco: 12 },
+    ] },
+    { id: 2, nome: 'Cardápio Aniversário', itens: [
+      { nome: 'Chopp 500ml', emoji: '🍺', cat: 'beverage', preco: 15 },
+      { nome: 'Gin Tônica', emoji: '🍸', cat: 'beverage', preco: 28 },
+      { nome: 'Refrigerante Lata', emoji: '🥤', cat: 'beverage', preco: 7 },
+      { nome: 'Porção de Batata', emoji: '🍟', cat: 'snack', preco: 30 },
+      { nome: 'Hambúrguer Artesanal', emoji: '🍔', cat: 'food', preco: 38 },
+    ] },
+  ];
+  let menuSel = 1;
+
+  let itensEvento = [
+    { nome: 'Skol Lata 350ml', emoji: '🍺', cat: 'beverage', preco: 8, disponivel: true },
+    { nome: 'Heineken Long Neck', emoji: '🍻', cat: 'beverage', preco: 14, disponivel: true },
+    { nome: 'Caipirinha', emoji: '🥃', cat: 'beverage', preco: 18, disponivel: false, nota: 'Esgotado por João Silva às 23:10' },
+    { nome: 'Água Mineral 500ml', emoji: '💧', cat: 'beverage', preco: 5, disponivel: true },
+    { nome: 'Carne de Sol c/ Macaxeira', emoji: '🧀', cat: 'snack', preco: 25, disponivel: true },
+    { nome: 'Espetinho de Frango', emoji: '🍢', cat: 'snack', preco: 12, disponivel: true },
+  ];
+
+  let eventos = [
+    { nome: 'Forró das Quartas', ini: '26 ago, 21:00', fim: '27 ago, 02:00', status: 'ativo', pedidos: 94, fat: 'R$ 1.822' },
+    { nome: 'Especial de Aniversário', ini: '30 ago, 21:00', fim: '31 ago, 03:00', status: 'agendado', pedidos: '—', fat: '—' },
+    { nome: 'Forró das Quartas', ini: '02 set, 21:00', fim: '03 set, 02:00', status: 'rascunho', pedidos: '—', fat: '—' },
+    { nome: 'Forró das Quartas', ini: '19 ago, 21:00', fim: '20 ago, 02:00', status: 'encerrado', pedidos: 78, fat: 'R$ 1.520' },
+  ];
+
+  let operadores = [
+    { nome: 'João Silva', balcao: 'Bar Principal', ativo: true, avatar: '👨' },
+    { nome: 'Maria Santos', balcao: 'Bar Principal', ativo: true, avatar: '👩' },
+    { nome: 'Carlos Souza', balcao: 'Bar Externo', ativo: true, avatar: '👨' },
+  ];
+  let itemDestino = 'modelo';
+
+  const fmt = v => 'R$ ' + Number(v).toFixed(2).replace('.', ',');
+
+  // ------------------------------------------------------------------ autenticação
+  function mostrarAuth(id) {
+    document.querySelectorAll('.auth').forEach(a => a.classList.remove('ativa'));
+    document.getElementById('painel').classList.remove('ativa');
+    if (id) document.getElementById(id).classList.add('ativa');
+  }
+  function entrar() { mostrarAuth(null); document.getElementById('painel').classList.add('ativa'); renderizarTudo(); irPara('tela-dashboard'); }
+  function cadastrar() { aprovado = false; entrar(); irPara('tela-cardapios'); toast('Conta criada! Cadastro enviado para análise.'); }
+  function sair() { mostrarAuth('auth-login'); }
+
+  function tipoDoc(t) {
+    document.getElementById('doc-cnpj').classList.toggle('sel', t === 'cnpj');
+    document.getElementById('doc-cpf').classList.toggle('sel', t === 'cpf');
+    document.getElementById('c-doc-label').textContent = t === 'cnpj' ? 'CNPJ' : 'CPF';
+    document.getElementById('c-doc').placeholder = t === 'cnpj' ? '00.000.000/0000-00' : '000.000.000-00';
+  }
+  function sugerirSlug() {
+    const nome = document.getElementById('c-nome').value;
+    const slug = nome.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    document.getElementById('c-slug').value = slug;
+    atualizarSlugPreview();
+  }
+  function atualizarSlugPreview() { document.getElementById('slug-preview').textContent = document.getElementById('c-slug').value || '...'; }
+
+  function aprovar() {
+    aprovado = true;
+    const b = document.getElementById('banner-aprovacao');
+    b.className = 'banner banner-aprovado';
+    b.innerHTML = '<span style="font-size:22px;">✅</span><div class="banner-texto"><strong>Cadastro aprovado</strong>Seu link e o QR Code fixo estão liberados, e você já pode publicar eventos.</div><button class="btn-sim" onclick="this.parentElement.style.display=\'none\'">Fechar</button>';
+    renderizarTudo();
+  }
+
+  // ------------------------------------------------------------------ navegação
+  function irPara(id) {
+    document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
+    document.getElementById(id).classList.add('ativa');
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('ativo', b.dataset.tela === id));
+  }
+  function abrirModal(id) {
+    if (id === 'modal-evento') {
+      document.getElementById('e-cardapio').innerHTML = cardapios.map(c => `<option value="${c.id}">${c.nome} (${c.itens.length} itens)</option>`).join('') + '<option value="0">Começar do zero</option>';
+    }
+    document.getElementById(id).classList.add('ativo');
+  }
+  function fecharModal(id) { document.getElementById(id).classList.remove('ativo'); }
+  document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('ativo'); }));
+
+  function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.style.display = 'block';
+    clearTimeout(t._timer); t._timer = setTimeout(() => { t.style.display = 'none'; }, 2400);
+  }
+
+  function renderizarTudo() {
+    renderizarEventos(); renderizarCardapios(); renderizarItensEvento(); renderizarOperadores();
+    document.getElementById('capa-acesso').style.display = aprovado ? 'none' : 'flex';
+  }
+
+  // ------------------------------------------------------------------ eventos
+  const STATUS = {
+    ativo:     '<span class="badge badge-azul"><span class="pulse-dot"></span> Ao vivo</span>',
+    agendado:  '<span class="badge badge-amarelo">Agendado</span>',
+    rascunho:  '<span class="badge badge-sub">Rascunho</span>',
+    encerrado: '<span class="badge badge-sub">Encerrado</span>',
+  };
+  function renderizarEventos() {
+    document.getElementById('tabela-eventos').innerHTML = eventos.map((e, i) => {
+      let acao = '';
+      if (e.status === 'ativo') acao = `<button class="btn btn-outline btn-sm" onclick="irPara('tela-dashboard')">Gerenciar</button>`;
+      if (e.status === 'agendado') acao = `<button class="btn btn-outline btn-sm" onclick="irPara('tela-itens-evento')">Configurar</button>`;
+      if (e.status === 'rascunho') acao = `<button class="btn btn-azul btn-sm" onclick="publicar(${i})" ${aprovado ? '' : 'title="Disponível após a aprovação do cadastro"'}>Publicar</button>`;
+      if (e.status === 'encerrado') acao = `<button class="btn btn-ghost btn-sm">Ver relatório</button>`;
+      return `<tr><td><strong>${e.nome}</strong></td><td>${e.ini}</td><td>${e.fim}</td><td>${e.pedidos}</td>
+        <td style="color:var(--azul);font-weight:600;">${e.fat}</td><td>${STATUS[e.status]}</td><td>${acao}</td></tr>`;
+    }).join('');
+  }
+  function publicar(i) {
+    if (!aprovado) { toast('🔒 A publicação é liberada após a aprovação do cadastro.'); return; }
+    eventos[i].status = 'agendado';
+    renderizarEventos();
+    toast('✓ Evento publicado! Ele já aparece como “Começa às 21h”.');
+  }
+  function sugerirTermino() {
+    const d = document.getElementById('e-data-ini').value;
+    if (!d) return;
+    const prox = new Date(d + 'T12:00:00'); prox.setDate(prox.getDate() + 1);
+    document.getElementById('e-data-fim').value = prox.toISOString().slice(0, 10);
+  }
+  function criarEvento() {
+    const nome = document.getElementById('e-nome').value.trim() || 'Novo evento';
+    const [a, m, d] = document.getElementById('e-data-ini').value.split('-');
+    const [a2, m2, d2] = document.getElementById('e-data-fim').value.split('-');
+    const meses = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+    eventos.unshift({ nome, ini: `${d} ${meses[+m - 1]}, ${document.getElementById('e-hora-ini').value}`, fim: `${d2} ${meses[+m2 - 1]}, ${document.getElementById('e-hora-fim').value}`, status: 'rascunho', pedidos: '—', fat: '—' });
+    fecharModal('modal-evento');
+    renderizarEventos();
+    irPara('tela-eventos');
+    toast('✓ Evento criado como rascunho. Publique quando estiver pronto.');
+  }
+
+  // ------------------------------------------------------------------ cardápios
+  function cardItem(it, acoes) {
+    return `<div class="item-card-org ${it.disponivel === false ? 'esgotado' : ''}">
+      <div class="item-emoji-org">${it.emoji}</div><div class="item-nome-org">${it.nome}</div>
+      <div class="item-cat-org">${CAT_NOME[it.cat]}</div><div class="item-preco-org">${fmt(it.preco)}</div>${acoes}</div>`;
+  }
+  function renderizarCardapios() {
+    const lista = document.getElementById('menu-lista');
+    lista.innerHTML = cardapios.length ? cardapios.map(c => `<button class="menu-opcao ${c.id === menuSel ? 'sel' : ''}" onclick="menuSel=${c.id};renderizarCardapios()">
+      <div class="menu-opcao-nome">${c.nome}</div><div class="menu-opcao-info">${c.itens.length} itens</div></button>`).join('')
+      : '<div class="hint" style="padding:8px;">Nenhum cardápio ainda. Crie o primeiro.</div>';
+    const m = cardapios.find(c => c.id === menuSel);
+    document.getElementById('menu-titulo').textContent = m ? m.nome : 'Nenhum cardápio selecionado';
+    document.getElementById('menu-itens').innerHTML = m && m.itens.length
+      ? m.itens.map((it, i) => cardItem(it, `<div class="item-acoes"><button class="btn btn-outline btn-sm">Editar</button><button class="btn btn-erro btn-sm" onclick="removerItemModelo(${i})">Remover</button></div>`)).join('')
+      : '<div class="hint">Sem itens. Use “+ Adicionar item”.</div>';
+  }
+  function novoCardapio() {
+    const nome = prompt('Nome do novo cardápio:', 'Cardápio Sexta');
+    if (!nome) return;
+    const id = Date.now();
+    cardapios.push({ id, nome, itens: [] });
+    menuSel = id;
+    renderizarCardapios();
+  }
+  function renomearCardapio() {
+    const m = cardapios.find(c => c.id === menuSel); if (!m) return;
+    const nome = prompt('Novo nome:', m.nome); if (nome) { m.nome = nome; renderizarCardapios(); }
+  }
+  function excluirCardapio() {
+    const m = cardapios.find(c => c.id === menuSel); if (!m) return;
+    if (!confirm(`Excluir “${m.nome}”? Eventos já criados com ele não mudam.`)) return;
+    cardapios = cardapios.filter(c => c.id !== menuSel);
+    menuSel = cardapios[0] ? cardapios[0].id : null;
+    renderizarCardapios();
+    toast('Cardápio excluído. Os eventos existentes não foram afetados.');
+  }
+  function removerItemModelo(i) { cardapios.find(c => c.id === menuSel).itens.splice(i, 1); renderizarCardapios(); }
+
+  function abrirModalItem(destino) {
+    itemDestino = destino;
+    document.getElementById('modal-item-titulo').textContent = destino === 'modelo' ? 'Adicionar item ao cardápio' : 'Adicionar item só para este evento';
+    ['i-nome', 'i-preco', 'i-emoji'].forEach(id => document.getElementById(id).value = '');
+    abrirModal('modal-item');
+  }
+  function salvarItem() {
+    const it = {
+      nome: document.getElementById('i-nome').value.trim() || 'Novo item',
+      preco: parseFloat(document.getElementById('i-preco').value.replace(/[^0-9,]/g, '').replace(',', '.')) || 0,
+      cat: document.getElementById('i-cat').value,
+      emoji: document.getElementById('i-emoji').value.trim() || '🍽️',
+    };
+    if (itemDestino === 'modelo') { const m = cardapios.find(c => c.id === menuSel); if (m) m.itens.push(it); renderizarCardapios(); }
+    else { itensEvento.push({ ...it, disponivel: true }); renderizarItensEvento(); }
+    fecharModal('modal-item');
+  }
+
+  // ------------------------------------------------------------------ itens do evento
+  function renderizarItensEvento() {
+    const box = document.getElementById('itens-evento');
+    box.innerHTML = ['beverage', 'snack', 'food'].map(cat => {
+      const itens = itensEvento.map((it, i) => ({ ...it, i })).filter(it => it.cat === cat);
+      if (!itens.length) return '';
+      return `<div class="card-box" style="margin-bottom:20px;"><div class="card-box-header"><div class="card-box-titulo">${CAT_TITULO[cat]}</div></div>
+        <div style="padding:16px;"><div class="cardapio-grid">${itens.map(it => cardItem(it, `
+          <button class="toggle ${it.disponivel ? 'on' : ''}" onclick="alternarDisponivel(${it.i})"><span class="toggle-trilho"></span>${it.disponivel ? 'Disponível' : 'Esgotado'}</button>
+          ${it.nota && !it.disponivel ? `<div class="item-nota">${it.nota}</div>` : ''}
+          <div class="item-acoes"><button class="btn btn-outline btn-sm">Editar</button><button class="btn btn-erro btn-sm" onclick="itensEvento.splice(${it.i},1);renderizarItensEvento()">Remover</button></div>`)).join('')}
+        </div></div></div>`;
+    }).join('');
+  }
+  function alternarDisponivel(i) {
+    itensEvento[i].disponivel = !itensEvento[i].disponivel;
+    renderizarItensEvento();
+    toast(itensEvento[i].disponivel ? `✓ ${itensEvento[i].nome} voltou ao cardápio` : `${itensEvento[i].nome} marcado como esgotado`);
+  }
+
+  // ------------------------------------------------------------------ operadores
+  const LETRAS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // sem 0/O e 1/I
+  const novoCodigo = () => Array.from({ length: 6 }, () => LETRAS[Math.floor(Math.random() * LETRAS.length)]).join('');
+
+  function renderizarOperadores() {
+    document.getElementById('op-list').innerHTML = operadores.map((o, i) => `
+      <div class="op-row ${o.ativo ? '' : 'inativo'}">
+        <div class="op-avatar">${o.avatar}</div>
+        <div class="op-info"><div class="op-nome">${o.nome}</div><div class="op-tel">${o.balcao || 'Sem balcão definido'}</div></div>
+        <div class="op-acoes">
+          ${o.ativo ? '<span class="badge badge-verde">Acesso ativo</span>' : '<span class="badge badge-sub">Desativado</span>'}
+          <button class="btn btn-outline btn-sm" onclick="regerarCodigo(${i})">Gerar novo código</button>
+          ${o.ativo ? `<button class="btn btn-erro btn-sm" onclick="alternarOperador(${i})">Desativar</button>` : `<button class="btn btn-outline btn-sm" onclick="alternarOperador(${i})">Reativar</button>`}
+        </div>
+      </div>`).join('');
+    document.getElementById('op-contagem').textContent = operadores.filter(o => o.ativo).length + ' ativos';
+  }
+  function alternarOperador(i) {
+    operadores[i].ativo = !operadores[i].ativo;
+    renderizarOperadores();
+    toast(operadores[i].ativo ? 'Acesso reativado' : 'Acesso desativado. O próximo scan dele já é bloqueado.');
+  }
+  function abrirModalOperador() {
+    document.getElementById('op-passo-1').style.display = 'flex';
+    document.getElementById('op-passo-2').style.display = 'none';
+    document.getElementById('o-nome').value = ''; document.getElementById('o-balcao').value = '';
+    abrirModal('modal-operador');
+  }
+  function mostrarCodigo(nome, titulo) {
+    const cod = novoCodigo();
+    document.getElementById('op-codigo-titulo').textContent = titulo;
+    document.getElementById('op-codigo-gerado').textContent = cod;
+    const msg = `Olá ${nome.split(' ')[0]}! Seu código de acesso para o Forró das Quartas é ${cod}. Ele vale até o fim do evento (02:00).`;
+    document.getElementById('btn-whatsapp').href = 'https://wa.me/?text=' + encodeURIComponent(msg);
+    document.getElementById('op-passo-1').style.display = 'none';
+    document.getElementById('op-passo-2').style.display = 'flex';
+  }
+  function gerarCodigo() {
+    const nome = document.getElementById('o-nome').value.trim() || 'Novo operador';
+    operadores.push({ nome, balcao: document.getElementById('o-balcao').value.trim(), ativo: true, avatar: '🙂' });
+    renderizarOperadores();
+    mostrarCodigo(nome, `Código de ${nome}`);
+  }
+  function regerarCodigo(i) {
+    if (!confirm(`Gerar novo código para ${operadores[i].nome}? O código atual deixa de funcionar na hora.`)) return;
+    abrirModal('modal-operador');
+    mostrarCodigo(operadores[i].nome, `Novo código de ${operadores[i].nome}`);
+  }
+</script>
+</body>
+</html>

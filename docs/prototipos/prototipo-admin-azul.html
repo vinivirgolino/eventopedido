@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EventoPedido — Painel do Administrador</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --azul: #2B6CB0;
+    --azul-esc: #1A4F8A;
+    --azul-claro: #EBF4FF;
+    --azul-medio: #63B3ED;
+    --azul-borda: #BEE3F8;
+    --branco: #FFFFFF;
+    --cinza-texto: #2D3748;
+    --cinza-sub: #718096;
+    --cinza-borda: #E2E8F0;
+    --cinza-fundo: #F7FAFC;
+    --verde: #38A169;
+    --amarelo: #D69E2E;
+    --erro: #E53E3E;
+  }
+
+  body { font-family: 'Inter', sans-serif; background: var(--cinza-fundo); color: var(--cinza-texto); min-height: 100vh; }
+
+  /* LOGIN */
+  .auth { display: none; min-height: 100vh; align-items: center; justify-content: center; padding: 32px 16px; }
+  .auth.ativa { display: flex; }
+  .auth-card { background: var(--branco); border: 1px solid var(--cinza-borda); border-radius: 20px; padding: 32px; width: 440px; max-width: 100%; display: flex; flex-direction: column; gap: 18px; box-shadow: 0 10px 40px rgba(43,108,176,0.08); }
+  .auth-logo { font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 700; color: var(--azul); letter-spacing: 0.06em; text-transform: uppercase; }
+  .auth-titulo { font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 700; }
+  .auth-sub { font-size: 14px; color: var(--cinza-sub); line-height: 1.5; }
+
+  .layout { display: none; min-height: 100vh; }
+  .layout.ativa { display: flex; }
+
+  /* SIDEBAR */
+  .sidebar { width: 220px; background: var(--azul-esc); display: flex; flex-direction: column; padding: 24px 0; position: fixed; top: 0; left: 0; bottom: 0; }
+  .sidebar-logo { font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 700; color: var(--branco); letter-spacing: 0.06em; text-transform: uppercase; padding: 0 20px 4px; }
+  .sidebar-tag { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--azul-medio); padding: 0 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.15); margin-bottom: 16px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 20px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.7); background: none; border: none; border-right: 3px solid transparent; width: 100%; text-align: left; font-family: inherit; cursor: pointer; transition: all 0.15s; }
+  .nav-item:hover { color: var(--branco); background: rgba(255,255,255,0.1); }
+  .nav-item.ativo { color: var(--branco); background: rgba(255,255,255,0.15); border-right-color: var(--branco); }
+  .nav-icon { width: 20px; text-align: center; }
+  .nav-count { margin-left: auto; background: var(--amarelo); color: var(--branco); font-size: 11px; font-weight: 700; border-radius: 20px; padding: 2px 8px; }
+  .sidebar-bottom { margin-top: auto; padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.15); font-size: 13px; color: rgba(255,255,255,0.6); }
+  .sidebar-user { font-weight: 600; color: var(--branco); font-size: 14px; }
+  .sidebar-sair { background: none; border: none; color: rgba(255,255,255,0.8); font-size: 13px; cursor: pointer; margin-top: 8px; padding: 0; font-family: inherit; text-decoration: underline; }
+
+  /* MAIN */
+  .main { margin-left: 220px; flex: 1; padding: 32px; min-width: 0; }
+  .tela { display: none; flex-direction: column; gap: 24px; animation: fadeIn 0.2s ease; }
+  .tela.ativa { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+  .page-titulo { font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 700; letter-spacing: 0.01em; }
+  .page-sub { font-size: 14px; color: var(--cinza-sub); margin-top: 4px; line-height: 1.5; }
+
+  /* STATS */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .stat-card { background: var(--branco); border: 1px solid var(--cinza-borda); border-radius: 14px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+  .stat-card-azul { border-top: 3px solid var(--azul); }
+  .stat-card-verde { border-top: 3px solid var(--verde); }
+  .stat-card-amarelo { border-top: 3px solid var(--amarelo); }
+  .stat-card-medio { border-top: 3px solid var(--azul-medio); }
+  .stat-card-erro { border-top: 3px solid var(--erro); }
+  .stat-label { font-size: 12px; color: var(--cinza-sub); font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 8px; }
+  .stat-valor { font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 700; color: var(--cinza-texto); }
+  .stat-sub { font-size: 12px; color: var(--cinza-sub); margin-top: 4px; line-height: 1.4; }
+  .destaque { background: var(--azul); border-color: var(--azul); }
+  .destaque .stat-label, .destaque .stat-sub { color: rgba(255,255,255,0.8); }
+  .destaque .stat-valor { color: var(--branco); }
+
+  /* CARD BOX */
+  .card-box { background: var(--branco); border: 1px solid var(--cinza-borda); border-radius: 16px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+  .card-box-header { padding: 18px 20px; border-bottom: 1px solid var(--cinza-borda); display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .card-box-titulo { font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 700; }
+  .card-box-sub { font-size: 12px; color: var(--cinza-sub); margin-top: 2px; }
+  .tabela-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cinza-sub); padding: 12px 20px; text-align: left; border-bottom: 1px solid var(--cinza-borda); background: var(--cinza-fundo); white-space: nowrap; }
+  th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td { padding: 14px 20px; font-size: 14px; border-bottom: 1px solid var(--cinza-borda); color: var(--cinza-texto); white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--azul-claro); }
+  tfoot td { font-weight: 700; background: var(--cinza-fundo); border-top: 1px solid var(--cinza-borda); }
+
+  .badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+  .badge-azul { background: var(--azul-claro); color: var(--azul); border: 1px solid var(--azul-borda); }
+  .badge-amarelo { background: rgba(214,158,46,0.1); color: var(--amarelo); border: 1px solid rgba(214,158,46,0.3); }
+  .badge-verde { background: rgba(56,161,105,0.1); color: var(--verde); border: 1px solid rgba(56,161,105,0.3); }
+  .badge-erro { background: rgba(229,62,62,0.08); color: var(--erro); border: 1px solid rgba(229,62,62,0.25); }
+  .badge-sub { background: var(--cinza-fundo); color: var(--cinza-sub); border: 1px solid var(--cinza-borda); }
+  .pulse-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: pulse 1.4s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
+
+  .banner { display: flex; align-items: center; gap: 14px; border-radius: 14px; padding: 14px 18px; font-size: 14px; line-height: 1.5; border: 1px solid; background: rgba(214,158,46,0.08); border-color: rgba(214,158,46,0.35); color: #975A16; flex-wrap: wrap; }
+  .banner .banner-texto { flex: 1; min-width: 200px; }
+  .banner strong { display: block; }
+  .info-box { background: var(--azul-claro); border: 1px solid var(--azul-borda); border-radius: 10px; padding: 12px 16px; font-size: 13px; color: var(--cinza-sub); line-height: 1.5; }
+  .info-box strong { color: var(--azul); }
+
+  /* GRÁFICO */
+  .grafico { padding: 20px 20px 12px; position: relative; }
+  .grafico svg { width: 100%; height: 240px; display: block; overflow: visible; }
+  .grafico .grid-line { stroke: var(--cinza-borda); stroke-width: 1; }
+  .grafico .eixo-txt { fill: var(--cinza-sub); font-size: 11px; font-family: 'Inter', sans-serif; }
+  .grafico .barra { fill: var(--azul); pointer-events: none; }
+  .grafico .barra.vazia { fill: var(--cinza-borda); }
+  .grafico .hit { fill: transparent; cursor: pointer; }
+  .grafico .hit:hover + .barra, .grafico .barra.hover { fill: var(--azul-esc); }
+  .tooltip { position: absolute; pointer-events: none; background: var(--cinza-texto); color: var(--branco); border-radius: 10px; padding: 10px 12px; font-size: 12px; line-height: 1.5; white-space: nowrap; display: none; transform: translate(-50%, -100%); z-index: 5; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+  .tooltip strong { font-family: 'Space Grotesk', sans-serif; font-size: 13px; }
+  .alternar-vista { display: flex; gap: 6px; }
+  .alternar-vista button { padding: 6px 12px; border-radius: 8px; border: 1px solid var(--cinza-borda); background: var(--branco); font-size: 12px; font-weight: 600; color: var(--cinza-sub); cursor: pointer; font-family: inherit; }
+  .alternar-vista button.sel { border-color: var(--azul); color: var(--azul); background: var(--azul-claro); }
+
+  /* ABAS E LISTAS (CADASTROS) */
+  .abas { display: flex; gap: 8px; flex-wrap: wrap; }
+  .aba { padding: 8px 16px; border-radius: 10px; border: 1px solid var(--cinza-borda); background: var(--branco); font-family: inherit; font-size: 14px; font-weight: 600; color: var(--cinza-sub); cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+  .aba.ativa { border-color: var(--azul); color: var(--azul); background: var(--azul-claro); }
+  .aba-num { font-size: 12px; background: var(--cinza-fundo); border: 1px solid var(--cinza-borda); border-radius: 20px; padding: 0 8px; color: var(--cinza-sub); }
+  .aba.ativa .aba-num { background: var(--branco); border-color: var(--azul-borda); color: var(--azul); }
+  .conteudo { display: grid; grid-template-columns: minmax(280px, 380px) 1fr; gap: 20px; align-items: start; }
+  .lista { display: flex; flex-direction: column; }
+  .linha { text-align: left; padding: 14px 20px; border: none; border-bottom: 1px solid var(--cinza-borda); background: var(--branco); cursor: pointer; font-family: inherit; display: flex; justify-content: space-between; align-items: center; gap: 12px; border-left: 3px solid transparent; }
+  .linha:last-child { border-bottom: none; }
+  .linha:hover { background: var(--cinza-fundo); }
+  .linha.sel { background: var(--azul-claro); border-left-color: var(--azul); }
+  .linha-nome { font-weight: 600; font-size: 14px; color: var(--cinza-texto); }
+  .linha-info { font-size: 12px; color: var(--cinza-sub); margin-top: 2px; }
+  .vazio { padding: 32px 20px; text-align: center; color: var(--cinza-sub); font-size: 14px; line-height: 1.5; }
+  .detalhe-corpo { padding: 20px; display: flex; flex-direction: column; gap: 18px; }
+  .dados { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 20px; }
+  .dado-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cinza-sub); margin-bottom: 4px; }
+  .dado-valor { font-size: 14px; color: var(--cinza-texto); word-break: break-word; }
+  .dado-valor.mono { font-family: 'Space Grotesk', sans-serif; letter-spacing: 0.03em; }
+  .checklist { display: flex; flex-direction: column; gap: 8px; }
+  .check { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; line-height: 1.5; }
+  .check-icone { width: 20px; flex-shrink: 0; text-align: center; }
+  .check-sub { font-size: 12px; color: var(--cinza-sub); }
+  .secao-titulo { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--azul); }
+  .acoes { display: flex; gap: 10px; flex-wrap: wrap; border-top: 1px solid var(--cinza-borda); padding-top: 18px; }
+
+  /* BUSCA DE PEDIDO */
+  .busca { display: flex; gap: 10px; max-width: 520px; }
+  .busca input { font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+  .exemplos { font-size: 12px; color: var(--cinza-sub); }
+  .exemplos button { background: none; border: none; color: var(--azul); font-weight: 600; cursor: pointer; font-family: 'Space Grotesk', sans-serif; letter-spacing: 0.06em; font-size: 12px; padding: 0 2px; }
+  .pedido-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+  .item-linha { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--cinza-borda); font-size: 14px; }
+  .item-linha:last-child { border-bottom: none; }
+  .item-linha.estornado span:first-child { text-decoration: line-through; color: var(--cinza-sub); }
+  .timeline { display: flex; flex-direction: column; }
+  .evento-tl { display: grid; grid-template-columns: 52px 16px 1fr; gap: 10px; align-items: start; padding-bottom: 14px; position: relative; }
+  .evento-tl:last-child { padding-bottom: 0; }
+  .tl-hora { font-size: 12px; color: var(--cinza-sub); font-variant-numeric: tabular-nums; padding-top: 1px; }
+  .tl-ponto { width: 10px; height: 10px; border-radius: 50%; margin-top: 4px; background: var(--azul); box-shadow: 0 0 0 2px var(--branco); position: relative; z-index: 1; }
+  .evento-tl:not(:last-child)::after { content: ''; position: absolute; left: 66px; top: 12px; bottom: 0; width: 2px; background: var(--cinza-borda); }
+  .tl-ok { background: var(--verde); } .tl-erro { background: var(--erro); } .tl-alerta { background: var(--amarelo); }
+  .tl-texto { font-size: 14px; line-height: 1.45; }
+  .tl-sub { font-size: 12px; color: var(--cinza-sub); }
+
+  /* BOTÕES / FORM */
+  .btn { padding: 10px 20px; border-radius: 10px; border: none; font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s; letter-spacing: 0.02em; white-space: nowrap; }
+  .btn-azul { background: var(--azul); color: var(--branco); box-shadow: 0 2px 8px rgba(43,108,176,0.2); }
+  .btn-azul:hover { background: var(--azul-esc); }
+  .btn-verde { background: var(--verde); color: var(--branco); }
+  .btn-verde:hover { filter: brightness(0.95); }
+  .btn-outline { background: var(--branco); color: var(--cinza-texto); border: 1px solid var(--cinza-borda); }
+  .btn-outline:hover { border-color: var(--azul); color: var(--azul); }
+  .btn-erro { background: rgba(229,62,62,0.08); color: var(--erro); border: 1px solid rgba(229,62,62,0.2); }
+  .btn-erro:hover { background: rgba(229,62,62,0.15); }
+  .btn-sm { padding: 7px 14px; font-size: 13px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  label { font-size: 12px; font-weight: 600; color: var(--cinza-sub); letter-spacing: 0.04em; text-transform: uppercase; }
+  input, select { background: var(--cinza-fundo); border: 1px solid var(--cinza-borda); border-radius: 10px; padding: 12px 14px; color: var(--cinza-texto); font-family: 'Inter', sans-serif; font-size: 14px; outline: none; width: 100%; }
+  select { width: auto; padding: 9px 12px; background: var(--branco); font-weight: 600; }
+  input:focus, select:focus { border-color: var(--azul); box-shadow: 0 0 0 3px rgba(43,108,176,0.1); }
+  .hint { font-size: 12px; color: var(--cinza-sub); line-height: 1.5; }
+
+  /* MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; padding: 16px; }
+  .modal-overlay.ativo { display: flex; }
+  .modal { background: var(--branco); border-radius: 20px; padding: 28px; width: 480px; max-width: 100%; display: flex; flex-direction: column; gap: 18px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+  .modal-titulo { font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 700; }
+  .modal-texto { font-size: 14px; color: var(--cinza-sub); line-height: 1.6; }
+  .modal-acoes { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+  .alerta-box { background: rgba(214,158,46,0.08); border: 1px solid rgba(214,158,46,0.35); border-radius: 10px; padding: 12px 16px; font-size: 13px; color: #975A16; line-height: 1.5; }
+
+  #toast { display: none; position: fixed; bottom: 28px; right: 28px; background: var(--azul); color: var(--branco); padding: 12px 20px; border-radius: 10px; font-weight: 600; font-size: 14px; font-family: 'Space Grotesk', sans-serif; z-index: 999; box-shadow: 0 4px 12px rgba(43,108,176,0.3); max-width: calc(100% - 32px); }
+
+  @media (max-width: 1000px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } .conteudo, .pedido-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 700px) {
+    .layout.ativa { flex-direction: column; }
+    .sidebar { position: static; width: 100%; padding: 12px 0; flex-direction: row; flex-wrap: wrap; }
+    .sidebar-logo { width: 100%; padding: 0 16px 2px; }
+    .sidebar-tag { width: 100%; padding: 0 16px 10px; margin-bottom: 6px; }
+    .sidebar-bottom { display: none; }
+    .nav-item { width: auto; padding: 8px 12px; border-right: none; border-radius: 8px; margin: 2px 4px; }
+    .main { margin-left: 0; padding: 20px 16px; }
+    .stats-grid, .dados { grid-template-columns: 1fr; }
+    .busca { flex-direction: column; }
+    #toast { left: 16px; right: 16px; bottom: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="auth ativa" id="auth-login">
+  <div class="auth-card">
+    <div class="auth-logo">EventoPedido · Admin</div>
+    <div>
+      <div class="auth-titulo">Painel do administrador</div>
+      <div class="auth-sub">Acesso restrito. O perfil de administrador é definido no servidor.</div>
+    </div>
+    <div class="form-group"><label for="l-email">E-mail</label><input id="l-email" type="email" value="admin@eventopedido.com.br"></div>
+    <div class="form-group"><label for="l-senha">Senha</label><input id="l-senha" type="password" value="senha-segura"></div>
+    <button class="btn btn-azul" onclick="entrar()">Entrar</button>
+  </div>
+</div>
+
+<!-- PAINEL -->
+<div class="layout" id="painel">
+  <aside class="sidebar">
+    <div class="sidebar-logo">EventoPedido</div>
+    <div class="sidebar-tag">Administrador</div>
+    <button class="nav-item ativo" data-tela="tela-geral" onclick="irPara('tela-geral')"><span class="nav-icon">📊</span> Visão geral</button>
+    <button class="nav-item" data-tela="tela-faturamento" onclick="irPara('tela-faturamento')"><span class="nav-icon">💰</span> Faturamento</button>
+    <button class="nav-item" data-tela="tela-pedidos" onclick="irPara('tela-pedidos')"><span class="nav-icon">🔎</span> Buscar pedido</button>
+    <button class="nav-item" data-tela="tela-cadastros" onclick="irPara('tela-cadastros')"><span class="nav-icon">🏪</span> Cadastros <span class="nav-count" id="nav-count">0</span></button>
+    <div class="sidebar-bottom">
+      <div class="sidebar-user">Administrador</div>
+      <div style="margin-top:4px;">admin@eventopedido.com.br</div>
+      <button class="sidebar-sair" onclick="sair()">Sair</button>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- VISÃO GERAL -->
+    <div class="tela ativa" id="tela-geral">
+      <div class="topbar">
+        <div><div class="page-titulo">Visão geral</div><div class="page-sub">Hoje, terça-feira, 29 set 2026 · atualiza sozinho</div></div>
+      </div>
+      <div class="banner" id="banner-pendentes">
+        <span style="font-size:22px;">⏳</span>
+        <div class="banner-texto"><strong id="banner-pendentes-titulo">—</strong>Estabelecimentos aguardando a sua análise para publicar eventos.</div>
+        <button class="btn btn-outline btn-sm" onclick="irPara('tela-cadastros')">Analisar cadastros →</button>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card stat-card-azul"><div class="stat-label">Estabelecimentos ativos</div><div class="stat-valor" id="g-ativos">—</div><div class="stat-sub">Com cadastro aprovado</div></div>
+        <div class="stat-card stat-card-verde"><div class="stat-label">Pedidos hoje</div><div class="stat-valor">214</div><div class="stat-sub">Pagos e confirmados</div></div>
+        <div class="stat-card stat-card-medio"><div class="stat-label">Transacionado hoje</div><div class="stat-valor">R$ 4.286</div><div class="stat-sub">Já descontados R$ 36 de estornos</div></div>
+        <div class="stat-card destaque"><div class="stat-label">Sua receita hoje</div><div class="stat-valor">R$ 214,30</div><div class="stat-sub">5% do transacionado</div></div>
+      </div>
+      <div class="card-box">
+        <div class="card-box-header"><div class="card-box-titulo">Eventos acontecendo agora</div><span class="badge badge-azul"><span class="pulse-dot"></span> 2 ao vivo</span></div>
+        <div class="tabela-wrap">
+          <table>
+            <thead><tr><th>Evento</th><th>Estabelecimento</th><th>Horário</th><th class="num">Pedidos</th><th class="num">Transacionado</th><th class="num">Aguardando retirada</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Sexta Aurora</strong></td><td>Casa Aurora</td><td>20h às 03h</td><td class="num">131</td><td class="num">R$ 2.652,00</td><td class="num">9</td></tr>
+              <tr><td><strong>Forró Pé de Serra</strong></td><td>Forró da Vila</td><td>21h às 02h</td><td class="num">83</td><td class="num">R$ 1.634,00</td><td class="num">4</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- FATURAMENTO -->
+    <div class="tela" id="tela-faturamento">
+      <div class="topbar">
+        <div><div class="page-titulo">Faturamento</div><div class="page-sub">Vendas pagas na plataforma e a sua receita de 5%, mês a mês</div></div>
+        <div class="form-group" style="gap:4px;">
+          <label for="mes">Mês</label>
+          <select id="mes" onchange="renderFaturamento()">
+            <option value="2026-09">Setembro 2026 (até hoje)</option>
+            <option value="2026-08">Agosto 2026</option>
+            <option value="2026-07">Julho 2026</option>
+          </select>
+        </div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card stat-card-verde"><div class="stat-label">Vendas no mês</div><div class="stat-valor" id="f-vendas">—</div><div class="stat-sub" id="f-vendas-sub">—</div></div>
+        <div class="stat-card stat-card-azul"><div class="stat-label">Valor transacionado</div><div class="stat-valor" id="f-bruto">—</div><div class="stat-sub" id="f-ticket">—</div></div>
+        <div class="stat-card stat-card-erro"><div class="stat-label">Estornos</div><div class="stat-valor" id="f-estornos">—</div><div class="stat-sub" id="f-estornos-sub">—</div></div>
+        <div class="stat-card destaque"><div class="stat-label">Sua receita no mês</div><div class="stat-valor" id="f-receita">—</div><div class="stat-sub">5% do transacionado, já descontados os estornos</div></div>
+      </div>
+
+      <div class="card-box">
+        <div class="card-box-header">
+          <div><div class="card-box-titulo" id="grafico-titulo">Vendas por dia</div><div class="card-box-sub">Passe o mouse sobre as barras para ver os valores</div></div>
+          <div class="alternar-vista">
+            <button class="sel" id="vista-qtd" onclick="trocarVista('qtd')">Quantidade</button>
+            <button id="vista-valor" onclick="trocarVista('valor')">Valor</button>
+          </div>
+        </div>
+        <div class="grafico" id="grafico">
+          <svg id="grafico-svg" role="img" aria-label="Gráfico de vendas por dia do mês"></svg>
+          <div class="tooltip" id="tooltip"></div>
+        </div>
+      </div>
+
+      <div class="card-box">
+        <div class="card-box-header"><div class="card-box-titulo">Por estabelecimento</div></div>
+        <div class="tabela-wrap">
+          <table>
+            <thead><tr><th>Estabelecimento</th><th class="num">Eventos</th><th class="num">Vendas</th><th class="num">Transacionado</th><th class="num">Estornado</th><th class="num">Sua receita (5%)</th></tr></thead>
+            <tbody id="f-tabela"></tbody>
+            <tfoot id="f-total"></tfoot>
+          </table>
+        </div>
+      </div>
+      <div class="info-box">A taxa do Pagar.me é descontada da parte do estabelecimento, então <strong>não reduz a sua receita</strong>. Nos estornos, os 5% são devolvidos na proporção do valor estornado. Os valores são brutos, antes de impostos e custos de infraestrutura.</div>
+    </div>
+
+    <!-- BUSCA DE PEDIDO -->
+    <div class="tela" id="tela-pedidos">
+      <div class="topbar">
+        <div><div class="page-titulo">Buscar pedido</div><div class="page-sub">Para atender um estabelecimento que precisa de ajuda com um pedido específico</div></div>
+      </div>
+      <div class="card-box" style="padding:20px;display:flex;flex-direction:column;gap:10px;">
+        <label for="busca-codigo">Código do pedido</label>
+        <div class="busca">
+          <input id="busca-codigo" maxlength="7" placeholder="GH7-382" onkeydown="if(event.key==='Enter')buscar()">
+          <button class="btn btn-azul" onclick="buscar()">Buscar</button>
+        </div>
+        <div class="exemplos">Exemplos do protótipo: <button onclick="buscarCodigo('GH7-382')">GH7-382</button> · <button onclick="buscarCodigo('MK3-915')">MK3-915</button> · <button onclick="buscarCodigo('PX1-447')">PX1-447</button></div>
+      </div>
+      <div id="resultado-busca"></div>
+    </div>
+
+    <!-- CADASTROS -->
+    <div class="tela" id="tela-cadastros">
+      <div>
+        <div class="page-titulo">Cadastros de estabelecimentos</div>
+        <div class="page-sub">Confira os dados antes de aprovar. A aprovação libera a publicação de eventos, o link e o QR Code fixo.</div>
+      </div>
+      <div class="abas" id="abas"></div>
+      <div class="conteudo">
+        <div class="card-box">
+          <div class="card-box-header"><div class="card-box-titulo" id="lista-titulo">—</div></div>
+          <div class="lista" id="lista"></div>
+        </div>
+        <div class="card-box" id="detalhe"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODAIS -->
+<div class="modal-overlay" id="modal-aprovar">
+  <div class="modal">
+    <div class="modal-titulo">Aprovar cadastro?</div>
+    <div class="modal-texto" id="aprovar-texto"></div>
+    <div class="alerta-box">Depois da aprovação, o estabelecimento <strong>não consegue mais alterar o endereço do link</strong>, porque ele vai impresso no QR Code.</div>
+    <div class="modal-acoes">
+      <button class="btn btn-outline" onclick="fecharModal('modal-aprovar')">Cancelar</button>
+      <button class="btn btn-verde" onclick="confirmarAprovacao()">Aprovar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-rejeitar">
+  <div class="modal">
+    <div class="modal-titulo">Rejeitar cadastro?</div>
+    <div class="modal-texto" id="rejeitar-texto"></div>
+    <div class="modal-acoes">
+      <button class="btn btn-outline" onclick="fecharModal('modal-rejeitar')">Cancelar</button>
+      <button class="btn btn-erro" onclick="confirmarRejeicao()">Rejeitar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-slug">
+  <div class="modal">
+    <div class="modal-titulo">Alterar endereço do link</div>
+    <div class="alerta-box">⚠️ Use só em caso excepcional. <strong>Todo QR Code já impresso para de funcionar</strong> e o estabelecimento precisa reimprimir banners e pulseiras.</div>
+    <div class="form-group">
+      <label for="novo-slug">Novo endereço</label>
+      <input id="novo-slug">
+      <div class="hint">eventopedido.com.br/<strong id="slug-preview" style="color:var(--azul);">…</strong> · letras minúsculas, números e hífen</div>
+    </div>
+    <div class="modal-acoes">
+      <button class="btn btn-outline" onclick="fecharModal('modal-slug')">Cancelar</button>
+      <button class="btn btn-azul" onclick="salvarSlug()">Salvar novo endereço</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  // ------------------------------------------------------------------ utilidades
+  const fmt = v => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmtInt = v => v.toLocaleString('pt-BR');
+  function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.style.display = 'block';
+    clearTimeout(t._timer); t._timer = setTimeout(() => { t.style.display = 'none'; }, 2600);
+  }
+  function abrirModal(id) { document.getElementById(id).classList.add('ativo'); }
+  function fecharModal(id) { document.getElementById(id).classList.remove('ativo'); }
+  document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('ativo'); }));
+
+  function entrar() {
+    document.getElementById('auth-login').classList.remove('ativa');
+    document.getElementById('painel').classList.add('ativa');
+    renderCadastros(); renderGeral(); renderFaturamento();
+  }
+  function sair() {
+    document.getElementById('painel').classList.remove('ativa');
+    document.getElementById('auth-login').classList.add('ativa');
+  }
+  function irPara(id) {
+    document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
+    document.getElementById(id).classList.add('ativa');
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('ativo', b.dataset.tela === id));
+    if (id === 'tela-faturamento') renderFaturamento();
+  }
+
+  // ------------------------------------------------------------------ dados de cadastros
+  let cadastros = [
+    { id: 1, nome: 'Bar do Zé', slug: 'bar-do-ze', tipo: 'cnpj', doc: '12.345.678/0001-95', email: 'contato@bardoze.com.br',
+      criado: '29 set 2026, 18:42', status: 'pending', recebedor: 're_cm1a2b3c4d5e', aprovado: null, eventos: 3, cardapios: 2 },
+    { id: 2, nome: 'Coletivo Sonora', slug: 'coletivo-sonora', tipo: 'cpf', doc: '123.456.789-09', email: 'sonora.coletivo@gmail.com',
+      criado: '28 set 2026, 21:10', status: 'pending', recebedor: 're_cm9z8y7x6w5v', aprovado: null, eventos: 1, cardapios: 1 },
+    { id: 3, nome: 'Casa Aurora', slug: 'casa-aurora', tipo: 'cnpj', doc: '98.765.432/0001-10', email: 'eventos@casaaurora.com.br',
+      criado: '02 jul 2026, 14:05', status: 'approved', recebedor: 're_cm4f5g6h7i8j', aprovado: '03 jul 2026, 09:30', eventos: 22, cardapios: 3 },
+    { id: 4, nome: 'Forró da Vila', slug: 'forro-da-vila', tipo: 'cnpj', doc: '45.678.901/0001-23', email: 'contato@forrodavila.com.br',
+      criado: '15 jul 2026, 11:20', status: 'approved', recebedor: 're_cm2k3l4m5n6o', aprovado: '15 jul 2026, 16:02', eventos: 18, cardapios: 1 },
+    { id: 5, nome: 'Bar Estação', slug: 'bar-estacao', tipo: 'cnpj', doc: '23.456.789/0001-01', email: 'gerencia@barestacao.com.br',
+      criado: '20 ago 2026, 10:00', status: 'approved', recebedor: 're_cm7p8q9r0s1t', aprovado: '21 ago 2026, 08:45', eventos: 7, cardapios: 2 },
+    { id: 6, nome: 'Boteco Teste 123', slug: 'boteco-teste-123', tipo: 'cnpj', doc: '11.111.111/0001-11', email: 'teste@teste.com',
+      criado: '05 set 2026, 02:14', status: 'rejected', recebedor: null, aprovado: null, eventos: 0, cardapios: 0 },
+  ];
+
+  // ------------------------------------------------------------------ visão geral
+  function renderGeral() {
+    const pend = cadastros.filter(c => c.status === 'pending').length;
+    document.getElementById('banner-pendentes').style.display = pend ? 'flex' : 'none';
+    document.getElementById('banner-pendentes-titulo').textContent = `${pend} cadastro${pend > 1 ? 's' : ''} aguardando aprovação`;
+    document.getElementById('g-ativos').textContent = cadastros.filter(c => c.status === 'approved').length;
+  }
+
+  // ------------------------------------------------------------------ faturamento
+  // Dados simulados: eventos em quartas, sextas e sábados. Gerador determinístico para o protótipo.
+  const MESES = {
+    '2026-09': { dias: 30, ate: 29, nome: 'setembro', lojas: ['Casa Aurora', 'Forró da Vila', 'Bar Estação'] },
+    '2026-08': { dias: 31, ate: 31, nome: 'agosto',   lojas: ['Casa Aurora', 'Forró da Vila', 'Bar Estação'] },
+    '2026-07': { dias: 31, ate: 31, nome: 'julho',    lojas: ['Casa Aurora', 'Forró da Vila'] },
+  };
+  const AGENDA = { 'Casa Aurora': [5, 6], 'Forró da Vila': [3, 5], 'Bar Estação': [6] }; // dias da semana com evento
+  const TICKET = { 'Casa Aurora': 20.2, 'Forró da Vila': 19.7, 'Bar Estação': 22.4 };
+  const INICIO = { 'Casa Aurora': '2026-07-04', 'Forró da Vila': '2026-07-16', 'Bar Estação': '2026-08-22' };
+
+  function pseudo(seed) { const x = Math.sin(seed * 9301 + 49297) * 233280; return x - Math.floor(x); }
+
+  function dadosDoMes(chave) {
+    const m = MESES[chave];
+    const [ano, mes] = chave.split('-').map(Number);
+    const dias = [];
+    const lojas = {};
+    m.lojas.forEach(l => lojas[l] = { eventos: 0, vendas: 0, bruto: 0, estornado: 0 });
+    for (let d = 1; d <= m.dias; d++) {
+      const data = new Date(ano, mes - 1, d);
+      const iso = `${chave}-${String(d).padStart(2, '0')}`;
+      let vendas = 0, bruto = 0, estornado = 0;
+      if (d <= m.ate) {
+        m.lojas.forEach((l, li) => {
+          if (!AGENDA[l].includes(data.getDay()) || iso < INICIO[l]) return;
+          const crescimento = 1 + (mes - 7) * 0.12;
+          const qtd = Math.round((90 + pseudo(d * 7 + li * 13 + mes) * 70) * crescimento);
+          const valor = qtd * TICKET[l] * (0.92 + pseudo(d + li + mes * 3) * 0.16);
+          const est = pseudo(d * 3 + li) > 0.7 ? Math.round(valor * 0.012 / 6) * 6 : 0;
+          vendas += qtd; bruto += valor; estornado += est;
+          lojas[l].eventos++; lojas[l].vendas += qtd; lojas[l].bruto += valor; lojas[l].estornado += est;
+        });
+      }
+      dias.push({ d, futuro: d > m.ate, vendas, bruto, estornado });
+    }
+    return { dias, lojas };
+  }
+
+  let vista = 'qtd';
+  function trocarVista(v) {
+    vista = v;
+    document.getElementById('vista-qtd').classList.toggle('sel', v === 'qtd');
+    document.getElementById('vista-valor').classList.toggle('sel', v === 'valor');
+    renderGrafico();
+  }
+
+  let dadosAtuais = null;
+  function renderFaturamento() {
+    const chave = document.getElementById('mes').value;
+    dadosAtuais = dadosDoMes(chave);
+    const { dias, lojas } = dadosAtuais;
+    const vendas = dias.reduce((a, x) => a + x.vendas, 0);
+    const bruto = dias.reduce((a, x) => a + x.bruto, 0);
+    const est = dias.reduce((a, x) => a + x.estornado, 0);
+    const liquido = bruto - est;
+    const nEstornos = dias.filter(x => x.estornado > 0).length * 3;
+    document.getElementById('f-vendas').textContent = fmtInt(vendas);
+    document.getElementById('f-vendas-sub').textContent = `pedidos pagos em ${dias.filter(x => x.vendas).length} dias com evento`;
+    document.getElementById('f-bruto').textContent = fmt(liquido);
+    document.getElementById('f-ticket').textContent = `Ticket médio de ${fmt(liquido / vendas)}`;
+    document.getElementById('f-estornos').textContent = fmt(est);
+    document.getElementById('f-estornos-sub').textContent = `${nEstornos} estornos · ${(est / bruto * 100).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}% do total vendido`;
+    document.getElementById('f-receita').textContent = fmt(liquido * 0.05);
+    document.getElementById('grafico-titulo').textContent = `Vendas por dia · ${MESES[chave].nome}`;
+
+    const linhas = Object.entries(lojas).sort((a, b) => b[1].bruto - a[1].bruto);
+    document.getElementById('f-tabela').innerHTML = linhas.map(([nome, l]) => {
+      const liq = l.bruto - l.estornado;
+      return `<tr><td><strong>${nome}</strong></td><td class="num">${l.eventos}</td><td class="num">${fmtInt(l.vendas)}</td>
+        <td class="num">${fmt(liq)}</td><td class="num">${fmt(l.estornado)}</td><td class="num" style="font-weight:600;">${fmt(liq * 0.05)}</td></tr>`;
+    }).join('');
+    const tEv = linhas.reduce((a, [, l]) => a + l.eventos, 0);
+    document.getElementById('f-total').innerHTML = `<tr><td>Total</td><td class="num">${tEv}</td><td class="num">${fmtInt(vendas)}</td>
+      <td class="num">${fmt(liquido)}</td><td class="num">${fmt(est)}</td><td class="num">${fmt(liquido * 0.05)}</td></tr>`;
+    renderGrafico();
+  }
+
+  function escalaLimpa(max) {
+    const bruto = max / 4;
+    const pot = Math.pow(10, Math.floor(Math.log10(bruto)));
+    const passo = [1, 2, 2.5, 5, 10].map(m => m * pot).find(p => p >= bruto);
+    return { passo, topo: passo * 4 };
+  }
+
+  function renderGrafico() {
+    if (!dadosAtuais) return;
+    const svg = document.getElementById('grafico-svg');
+    const W = svg.clientWidth || 800, H = 240;
+    const esq = 56, dir = 8, topo = 10, base = 26;
+    const valores = dadosAtuais.dias.map(x => vista === 'qtd' ? x.vendas : x.bruto - x.estornado);
+    const { passo, topo: vMax } = escalaLimpa(Math.max(...valores, 1));
+    const n = valores.length;
+    const banda = (W - esq - dir) / n;
+    const largura = Math.min(24, Math.max(4, banda - 4));
+    const y = v => topo + (H - topo - base) * (1 - v / vMax);
+    let out = '';
+    for (let i = 0; i <= 4; i++) {
+      const v = passo * i, yy = y(v);
+      out += `<line class="grid-line" x1="${esq}" x2="${W - dir}" y1="${yy}" y2="${yy}"/>`;
+      const rot = vista === 'qtd' ? fmtInt(v) : (v >= 1000 ? 'R$ ' + (v / 1000).toLocaleString('pt-BR') + ' mil' : 'R$ ' + v);
+      out += `<text class="eixo-txt" x="${esq - 8}" y="${yy + 4}" text-anchor="end">${rot}</text>`;
+    }
+    dadosAtuais.dias.forEach((x, i) => {
+      const cx = esq + banda * i + banda / 2;
+      const v = valores[i];
+      if (v > 0) {
+        const y0 = y(v), h = y(0) - y0, r = Math.min(4, h / 2), xL = cx - largura / 2, xR = cx + largura / 2, yb = y(0);
+        out += `<rect class="hit" data-i="${i}" x="${esq + banda * i}" y="${topo}" width="${banda}" height="${H - topo - base}"/>`;
+        out += `<path class="barra" id="b${i}" d="M${xL},${yb} V${y0 + r} Q${xL},${y0} ${xL + r},${y0} H${xR - r} Q${xR},${y0} ${xR},${y0 + r} V${yb} Z"/>`;
+      }
+      if (x.d === 1 || x.d % 5 === 0) out += `<text class="eixo-txt" x="${cx}" y="${H - 8}" text-anchor="middle">${x.d}</text>`;
+    });
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    svg.innerHTML = out;
+
+    const tip = document.getElementById('tooltip');
+    const box = document.getElementById('grafico');
+    svg.querySelectorAll('.hit').forEach(h => {
+      h.addEventListener('mouseenter', () => {
+        const i = +h.dataset.i, x = dadosAtuais.dias[i];
+        const barra = document.getElementById('b' + i); barra.classList.add('hover');
+        const rect = barra.getBoundingClientRect(), bRect = box.getBoundingClientRect();
+        tip.innerHTML = `<strong>${x.d} de ${MESES[document.getElementById('mes').value].nome}</strong><br>${fmtInt(x.vendas)} vendas<br>${fmt(x.bruto - x.estornado)} transacionado<br>Sua receita: ${fmt((x.bruto - x.estornado) * 0.05)}`;
+        tip.style.display = 'block';
+        const left = Math.min(Math.max(rect.left - bRect.left + rect.width / 2, 90), bRect.width - 90);
+        tip.style.left = left + 'px';
+        tip.style.top = (rect.top - bRect.top - 8) + 'px';
+      });
+      h.addEventListener('mouseleave', () => {
+        document.getElementById('b' + h.dataset.i).classList.remove('hover');
+        tip.style.display = 'none';
+      });
+    });
+  }
+  window.addEventListener('resize', renderGrafico);
+
+  // ------------------------------------------------------------------ busca de pedido
+  const PEDIDOS = {
+    'GH7-382': [{
+      estab: 'Casa Aurora', evento: 'Sexta Aurora', data: '25 set 2026', status: 'collected', total: 56, estornado: 18, metodo: 'Pix',
+      itens: [{ q: 2, n: 'Skol Lata 350ml', v: 16 }, { q: 1, n: 'Heineken Long Neck', v: 14 }, { q: 1, n: 'Caipirinha', v: 18, est: true }, { q: 1, n: 'Água Mineral 500ml', v: 8 }],
+      linha: [
+        ['22:10', 'Pedido criado', 'Aguardando pagamento', ''],
+        ['22:11', 'Pix pago', 'Webhook charge.paid recebido · ch_8f2k1m', 'tl-ok'],
+        ['22:26', 'QR Code lido por Ana Lima', 'Bar Principal · pedido reservado', ''],
+        ['22:27', 'Estorno de R$ 18,00', '1x Caipirinha · item esgotado · concluído no Pagar.me', 'tl-alerta'],
+        ['22:27', 'Entrega confirmada', 'QR Code invalidado', 'tl-ok'],
+      ] }],
+    'MK3-915': [
+      { estab: 'Forró da Vila', evento: 'Forró Pé de Serra', data: 'hoje', status: 'paid', total: 43, estornado: 0, metodo: 'Pix',
+        itens: [{ q: 1, n: 'Caipirinha', v: 18 }, { q: 1, n: 'Carne de Sol c/ Macaxeira', v: 25 }],
+        linha: [
+          ['21:40', 'Pedido criado', 'Aguardando pagamento', ''],
+          ['21:41', 'Cartão recusado', 'Tentativa 1 · charge.payment_failed', 'tl-erro'],
+          ['21:43', 'Pix pago', 'Tentativa 2 · webhook charge.paid recebido', 'tl-ok'],
+          ['—', 'Aguardando retirada', 'QR Code válido até 02:00', ''],
+        ] },
+      { estab: 'Bar Estação', evento: 'Sábado Estação', data: '12 set 2026', status: 'collected', total: 30, estornado: 0, metodo: 'Cartão',
+        itens: [{ q: 2, n: 'Chopp 300ml', v: 30 }],
+        linha: [
+          ['23:05', 'Pedido criado', 'Aguardando pagamento', ''],
+          ['23:05', 'Cartão aprovado', 'Webhook charge.paid recebido', 'tl-ok'],
+          ['23:18', 'QR Code lido por Rafael Costa', 'Bar Externo', ''],
+          ['23:19', 'Entrega confirmada', 'QR Code invalidado', 'tl-ok'],
+        ] },
+    ],
+    'PX1-447': [{
+      estab: 'Casa Aurora', evento: 'Sexta Aurora', data: 'hoje', status: 'expired', total: 15, estornado: 0, metodo: 'Pix',
+      itens: [{ q: 3, n: 'Água Mineral 500ml', v: 15 }],
+      linha: [
+        ['20:52', 'Pedido criado', 'Aguardando pagamento', ''],
+        ['20:52', 'Pix gerado', 'Prazo de 15 minutos', ''],
+        ['21:07', 'Pedido expirado', 'Nenhum pagamento aprovado · nada foi cobrado', 'tl-erro'],
+      ] }],
+  };
+  const STATUS_PEDIDO = {
+    collected: '<span class="badge badge-verde">✓ Retirado</span>',
+    paid: '<span class="badge badge-azul">Aguardando retirada</span>',
+    expired: '<span class="badge badge-sub">Expirado</span>',
+  };
+
+  function buscarCodigo(c) { document.getElementById('busca-codigo').value = c; buscar(); }
+  function buscar() {
+    const cod = document.getElementById('busca-codigo').value.trim().toUpperCase();
+    const box = document.getElementById('resultado-busca');
+    const achados = PEDIDOS[cod];
+    if (!cod) { box.innerHTML = ''; return; }
+    if (!achados) {
+      box.innerHTML = `<div class="card-box"><div class="vazio">Nenhum pedido encontrado com o código <strong>${cod.replace(/[<>&]/g, '')}</strong>.</div></div>`;
+      return;
+    }
+    const aviso = achados.length > 1
+      ? `<div class="info-box">O mesmo código aparece em <strong>${achados.length} eventos diferentes</strong>. Confirme com o estabelecimento qual é o pedido.</div>` : '';
+    box.innerHTML = aviso + achados.map(p => `
+      <div class="card-box" style="margin-top:16px;">
+        <div class="card-box-header">
+          <div><div class="card-box-titulo" style="font-size:20px;letter-spacing:0.1em;color:var(--azul);">${cod}</div>
+          <div class="card-box-sub">${p.estab} · ${p.evento} · ${p.data}</div></div>
+          ${STATUS_PEDIDO[p.status]}
+        </div>
+        <div class="detalhe-corpo">
+          <div class="pedido-grid">
+            <div>
+              <div class="secao-titulo" style="margin-bottom:8px;">Itens</div>
+              ${p.itens.map(i => `<div class="item-linha ${i.est ? 'estornado' : ''}"><span>${i.q}x ${i.n}</span><span>${i.est ? 'estornado' : fmt(i.v)}</span></div>`).join('')}
+              <div class="item-linha" style="font-weight:700;"><span>Total pago (${p.metodo})</span><span>${fmt(p.total)}</span></div>
+              ${p.estornado ? `<div class="item-linha" style="color:var(--erro);"><span>Devolvido ao cliente</span><span>− ${fmt(p.estornado)}</span></div>` : ''}
+            </div>
+            <div>
+              <div class="secao-titulo" style="margin-bottom:12px;">Histórico</div>
+              <div class="timeline">${p.linha.map(([h, t, s, c]) => `<div class="evento-tl"><span class="tl-hora">${h}</span><span class="tl-ponto ${c}"></span><div><div class="tl-texto">${t}</div><div class="tl-sub">${s}</div></div></div>`).join('')}</div>
+            </div>
+          </div>
+        </div>
+      </div>`).join('');
+  }
+
+  // ------------------------------------------------------------------ cadastros
+  let aba = 'pending';
+  let selId = 1;
+  const ABAS = [{ id: 'pending', nome: 'Pendentes' }, { id: 'approved', nome: 'Aprovados' }, { id: 'rejected', nome: 'Rejeitados' }];
+  const BADGE = {
+    pending: '<span class="badge badge-amarelo">Aguardando</span>',
+    approved: '<span class="badge badge-verde">Aprovado</span>',
+    rejected: '<span class="badge badge-erro">Rejeitado</span>',
+  };
+  const atual = () => cadastros.find(c => c.id === selId);
+
+  function trocarAba(id) {
+    aba = id;
+    const primeiro = cadastros.find(c => c.status === id);
+    selId = primeiro ? primeiro.id : null;
+    renderCadastros();
+  }
+
+  function renderCadastros() {
+    const pendentes = cadastros.filter(c => c.status === 'pending').length;
+    const cnt = document.getElementById('nav-count');
+    cnt.textContent = pendentes; cnt.style.display = pendentes ? 'inline' : 'none';
+    document.getElementById('abas').innerHTML = ABAS.map(a =>
+      `<button class="aba ${a.id === aba ? 'ativa' : ''}" onclick="trocarAba('${a.id}')">${a.nome} <span class="aba-num">${cadastros.filter(c => c.status === a.id).length}</span></button>`).join('');
+    document.getElementById('lista-titulo').textContent = ABAS.find(a => a.id === aba).nome;
+    const itens = cadastros.filter(c => c.status === aba);
+    document.getElementById('lista').innerHTML = itens.length
+      ? itens.map(c => `<button class="linha ${c.id === selId ? 'sel' : ''}" onclick="selId=${c.id};renderCadastros()">
+          <div><div class="linha-nome">${c.nome}</div><div class="linha-info">${c.tipo.toUpperCase()} · cadastrado em ${c.criado}</div></div>${BADGE[c.status]}</button>`).join('')
+      : `<div class="vazio">${aba === 'pending' ? '🎉 Nenhum cadastro aguardando análise.' : 'Nenhum cadastro nesta lista.'}</div>`;
+    renderDetalhe();
+    renderGeral();
+  }
+
+  function renderDetalhe() {
+    const box = document.getElementById('detalhe');
+    const c = atual();
+    if (!c || c.status !== aba) { box.innerHTML = '<div class="vazio">Selecione um cadastro para ver os detalhes.</div>'; return; }
+    const docNome = c.tipo === 'cnpj' ? 'CNPJ' : 'CPF';
+    let acoes;
+    if (c.status === 'pending') acoes = `<button class="btn btn-verde" onclick="aprovar()">✓ Aprovar cadastro</button><button class="btn btn-erro" onclick="rejeitar()">Rejeitar</button>`;
+    else if (c.status === 'approved') acoes = `<button class="btn btn-outline" onclick="abrirSlug()">Alterar endereço do link</button>`;
+    else acoes = `<div class="hint">Cadastro rejeitado. O estabelecimento não pode publicar eventos.</div>`;
+
+    box.innerHTML = `
+      <div class="card-box-header">
+        <div><div class="card-box-titulo" style="font-size:18px;">${c.nome}</div>
+        <div class="page-sub" style="margin-top:2px;">eventopedido.com.br/<strong style="color:var(--azul);">${c.slug}</strong></div></div>
+        ${BADGE[c.status]}
+      </div>
+      <div class="detalhe-corpo">
+        <div class="secao-titulo">Dados do cadastro</div>
+        <div class="dados">
+          <div><div class="dado-label">${docNome}</div><div class="dado-valor mono">${c.doc}</div></div>
+          <div><div class="dado-label">Tipo</div><div class="dado-valor">${c.tipo === 'cnpj' ? 'Pessoa jurídica' : 'Pessoa física (produtor)'}</div></div>
+          <div><div class="dado-label">E-mail de acesso</div><div class="dado-valor">${c.email}</div></div>
+          <div><div class="dado-label">Cadastrado em</div><div class="dado-valor">${c.criado}</div></div>
+          ${c.aprovado ? `<div><div class="dado-label">Aprovado em</div><div class="dado-valor">${c.aprovado}</div></div>` : ''}
+          <div><div class="dado-label">${c.status === 'approved' ? 'Na plataforma' : 'Preparado no painel'}</div><div class="dado-valor">${c.cardapios} cardápio(s) · ${c.eventos} evento(s)</div></div>
+        </div>
+        <div class="secao-titulo">Verificações</div>
+        <div class="checklist">
+          <div class="check"><span class="check-icone">${c.status === 'rejected' ? '⚠️' : '✅'}</span>
+            <div>${docNome} com dígitos verificadores válidos
+            ${c.status === 'rejected' ? '<div class="check-sub">Sequência repetida: documento provavelmente falso.</div>' : ''}</div></div>
+          <div class="check"><span class="check-icone">${c.recebedor ? '✅' : '—'}</span>
+            <div>${c.recebedor ? `Recebedor criado no Pagar.me <div class="check-sub">${c.recebedor} · dados bancários ficam só no Pagar.me</div>` : 'Recebedor não criado'}</div></div>
+          ${c.status === 'pending' ? `<div class="check"><span class="check-icone">🔎</span>
+            <div>Conferir manualmente a situação cadastral do ${docNome}
+            <div class="check-sub">${c.tipo === 'cnpj' ? 'Empresa ativa e com atividade compatível (bar, casa de show, eventos)' : 'Nome e CPF regulares, e presença do produtor em redes ou eventos'}</div></div></div>` : ''}
+        </div>
+        ${c.status === 'pending' ? '<div class="info-box">Ao aprovar, o estabelecimento passa a <strong>publicar eventos</strong> e recebe o <strong>link e o QR Code fixo</strong>. O endereço do link fica travado.</div>' : ''}
+        <div class="acoes">${acoes}</div>
+      </div>`;
+  }
+
+  function aprovar() {
+    const c = atual();
+    document.getElementById('aprovar-texto').innerHTML = `<strong>${c.nome}</strong> poderá publicar eventos e receber pedidos pelo endereço <strong>eventopedido.com.br/${c.slug}</strong>.`;
+    abrirModal('modal-aprovar');
+  }
+  function confirmarAprovacao() {
+    const c = atual(); c.status = 'approved'; c.aprovado = 'agora';
+    fecharModal('modal-aprovar'); toast(`✓ ${c.nome} aprovado`); trocarAba('pending');
+  }
+  function rejeitar() {
+    const c = atual();
+    document.getElementById('rejeitar-texto').innerHTML = `<strong>${c.nome}</strong> continuará sem poder publicar eventos nem receber pagamentos.`;
+    abrirModal('modal-rejeitar');
+  }
+  function confirmarRejeicao() {
+    const c = atual(); c.status = 'rejected';
+    fecharModal('modal-rejeitar'); toast(`${c.nome} rejeitado`); trocarAba('pending');
+  }
+  function abrirSlug() {
+    const c = atual();
+    const inp = document.getElementById('novo-slug');
+    inp.value = c.slug;
+    document.getElementById('slug-preview').textContent = c.slug;
+    inp.oninput = function () { this.value = this.value.toLowerCase().replace(/[^a-z0-9-]/g, ''); document.getElementById('slug-preview').textContent = this.value || '…'; };
+    abrirModal('modal-slug');
+  }
+  function salvarSlug() {
+    const c = atual();
+    const novo = document.getElementById('novo-slug').value.trim();
+    if (!novo) { toast('Informe um endereço'); return; }
+    if (cadastros.some(x => x.slug === novo && x.id !== c.id)) { toast('Esse endereço já está em uso'); return; }
+    c.slug = novo; fecharModal('modal-slug'); renderCadastros();
+    toast('✓ Endereço alterado. Avise o estabelecimento para reimprimir o QR Code.');
+  }
+</script>
+</body>
+</html>
