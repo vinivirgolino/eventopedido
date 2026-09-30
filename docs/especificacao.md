@@ -127,7 +127,7 @@ O fluxo do cliente foi desenhado para ser o mais direto e intuitivo possível, e
 
 - Avança para a tela de pagamento, onde confirma o resumo do pedido e escolhe a forma de pagamento: Pix ou cartão de crédito.
 
-- No Pix, recebe o QR Code e o código copia e cola, com prazo de 15 minutos para pagar; a tela aguarda a confirmação e se atualiza sozinha. No cartão, preenche os dados em um formulário seguro; se o cartão for recusado, pode tentar novamente ou trocar para Pix sem refazer o pedido.
+- No Pix, recebe o QR Code e o código copia e cola, com prazo de 15 minutos para pagar; a tela aguarda a confirmação e se atualiza sozinha. No cartão, preenche os dados em um formulário seguro; se o cartão for recusado, pode tentar novamente ou trocar para Pix sem refazer o pedido. Também é possível trocar do Pix para o cartão: nesse caso, o Pix gerado é cancelado e deixa de poder ser pago.
 
 - Com o pagamento confirmado, recebe na tela o comprovante do pedido, contendo o QR Code único, a lista de itens, o valor total, o horário da compra e o horário limite para retirada, que é o fim do evento.
 
@@ -141,7 +141,7 @@ O operador de bar interage com a plataforma exclusivamente durante o evento, por
 
 - Recebe o código de acesso individual enviado pelo estabelecimento antes do início do evento, normalmente por WhatsApp.
 
-- Abre o aplicativo nativo no celular do bar e insere o código de seis caracteres. Após cinco tentativas incorretas, o dispositivo precisa aguardar alguns minutos antes de tentar novamente.
+- Abre o aplicativo nativo no celular do bar e insere o código de seis caracteres. Após cinco tentativas incorretas, novas tentativas vindas da mesma conexão (endereço IP) ficam bloqueadas por alguns minutos.
 
 - Já autenticado, acessa a tela principal do app, que exibe o botão de escaneamento de pedidos e a lista de pedidos entregues por ele.
 
@@ -213,7 +213,7 @@ A segurança do sistema foi pensada desde o início do projeto, considerando que
 
 - Rastreabilidade por operador: cada atendimento é registrado com o identificador do operador que realizou a leitura, por meio do campo operator_id na tabela orders, junto com os horários de leitura e de entrega. Isso permite auditoria completa de todas as entregas realizadas durante o evento.
 
-- Código de acesso do operador protegido: o código possui seis caracteres alfanuméricos, sem caracteres que se confundem, como 0 e O, o que resulta em cerca de um bilhão de combinações. O backend limita as tentativas de login e armazena apenas o hash do código, nunca o código em texto puro.
+- Código de acesso do operador protegido: o código possui seis caracteres alfanuméricos, sem caracteres que se confundem, como 0 e O, o que resulta em cerca de um bilhão de combinações. O backend limita as tentativas de login a cinco por endereço IP, com bloqueio temporário, e armazena apenas o hash do código, nunca o código em texto puro. No MVP, a contagem de tentativas fica na memória do servidor, o que funciona com a instância única do backend na Railway. Essa é uma limitação conhecida: quando o backend passar a rodar em mais de uma instância, a contagem deve ir para o banco de dados ou para um cache compartilhado.
 
 - QR Code do comprovante válido em todos os balcões: o QR Code gerado no comprovante do consumidor é reconhecido por qualquer operador do mesmo evento, independentemente do balcão em que está alocado.
 
@@ -273,13 +273,17 @@ O processamento de pagamentos é realizado pelo Pagar.me, gateway escolhido por 
 
 - O consumidor confirma o carrinho e o backend cria o pedido com o status awaiting_payment, calculando o valor total a partir dos preços do cardápio, e não de valores enviados pelo aplicativo.
 
-- O consumidor escolhe a forma de pagamento e o backend cria uma tentativa de pagamento na tabela payments, acionando a API do Pagar.me com as regras de split. No cartão, os dados são tokenizados diretamente pelo Pagar.me no aplicativo, e o número do cartão nunca passa pelo backend nem é armazenado.
+- O consumidor escolhe a forma de pagamento e o backend cria uma tentativa de pagamento na tabela payments, acionando a API do Pagar.me com as regras de split. No cartão, os dados são tokenizados diretamente pelo Pagar.me no aplicativo, e o número do cartão nunca passa pelo backend nem é armazenado. No Pix, a cobrança é criada no Pagar.me com expiração no mesmo horário limite do pedido, 15 minutos após a sua criação, de modo que o próprio Pagar.me recusa o pagamento depois do prazo.
+
+- Cada pedido tem no máximo uma tentativa pendente por vez: enquanto houver uma tentativa com status pending, o backend não cria outra. Se o consumidor quiser trocar do Pix para o cartão, o backend primeiro cancela a cobrança Pix pendente no Pagar.me, marca a tentativa como cancelled e só então cria a tentativa no cartão. Se o cancelamento não for possível porque o Pix acabou de ser pago, a troca é recusada e o pedido segue o fluxo normal de pagamento aprovado.
 
 - O Pagar.me informa o resultado ao backend por webhook. Cada aviso recebido é registrado na tabela payment_webhooks; se o mesmo aviso chegar mais de uma vez, ele é identificado e não é processado novamente, o que torna a operação idempotente.
 
 - Com o pagamento aprovado, o pedido passa para paid e o QR Code de retirada é exibido na tela do consumidor. A confirmação nunca é aceita com base em informação enviada pelo aplicativo.
 
 - Se uma tentativa falhar, como um cartão recusado, apenas a tentativa fica com o status failed. O pedido continua aguardando pagamento e o consumidor pode tentar novamente, com outro cartão ou com Pix. Se nenhuma tentativa for aprovada em 15 minutos, o pedido passa para expired e nenhum valor é cobrado.
+
+- Estorno automático do sistema: apesar das proteções acima, o backend trata dois casos raros sem intervenção manual. Se chegar a confirmação de um pagamento para um pedido que já está expired, o valor integral dessa tentativa é estornado automaticamente, com o motivo late_payment, e o pedido continua expired. Se uma segunda tentativa for aprovada para um pedido que já foi pago, essa segunda tentativa é estornada automaticamente, com o motivo duplicate_payment, e o pedido mantém o status atual. Esses estornos são registrados na tabela refunds sem operador (operator_id vazio), não têm itens em refund_items e não entram em orders.refunded_amount, que soma apenas os estornos de itens do pedido.
 
 - No split, a plataforma recebe 5% do valor total do pedido. O estabelecimento recebe os 95% restantes, descontada a taxa do Pagar.me, que varia conforme o meio de pagamento e o contrato. Eventuais chargebacks também ficam a cargo do estabelecimento.
 
@@ -294,7 +298,7 @@ O processamento de pagamentos é realizado pelo Pagar.me, gateway escolhido por 
 | refunded             | Pedido estornado integralmente                                |
 | expired              | Nenhum pagamento aprovado dentro do prazo; nada foi cobrado   |
 
-As transições possíveis são: awaiting_payment para paid ou expired; paid para in_service; in_service para collected, refunded ou de volta para paid, quando o atendimento é cancelado. Estornos parciais não alteram o status: o valor devolvido é registrado no campo refunded_amount e na tabela refunds, e o pedido segue para collected com os itens restantes.
+As transições possíveis são: awaiting_payment para paid ou expired; paid para in_service; in_service para collected, refunded ou de volta para paid, quando o atendimento é cancelado. Estornos parciais não alteram o status: o valor devolvido é registrado no campo refunded_amount e na tabela refunds, e o pedido segue para collected com os itens restantes. Os estornos automáticos do sistema (late_payment e duplicate_payment) também não alteram o status do pedido.
 
 ## 7.5 Rotas da API
 
@@ -479,9 +483,9 @@ Armazena os pedidos realizados pelos consumidores durante um evento. É a tabela
 | event_id        | UUID        | Sim             | Referência ao evento em que o pedido foi realizado. Chave estrangeira para a tabela events                              |
 | client_id       | UUID        | Não             | Referência à sessão anônima do consumidor no Supabase Auth. Esvaziado quando a sessão é excluída pela rotina de limpeza |
 | operator_id     | UUID        | Não             | Referência ao operador que leu o QR Code e realizou o atendimento. Chave estrangeira para a tabela operators            |
-| order_code      | TEXT        | Sim             | Código alfanumérico exibido no comprovante do consumidor para identificação visual do pedido                            |
+| order_code      | TEXT        | Sim             | Código exibido no comprovante do consumidor para identificação visual do pedido, no formato GH7-382: duas letras, um dígito, hífen e três dígitos, sem caracteres que se confundem (0 e O, 1 e I). Gerado aleatoriamente; único dentro do evento, e em caso de colisão um novo código é gerado |
 | total_amount    | DECIMAL     | Sim             | Valor total do pedido, calculado pelo backend com base nos itens e quantidades no momento da compra                     |
-| refunded_amount | DECIMAL     | Sim             | Soma dos valores estornados ao consumidor. Inicia em zero                                                               |
+| refunded_amount | DECIMAL     | Sim             | Soma dos valores de itens do pedido estornados ao consumidor. Inicia em zero. Não inclui os estornos automáticos do sistema (late_payment e duplicate_payment) |
 | status          | TEXT        | Sim             | Estado atual do pedido: awaiting_payment, paid, in_service, collected, refunded ou expired                              |
 | paid_at         | TIMESTAMPTZ | Não             | Data e hora em que o pagamento foi confirmado pelo Pagar.me                                                             |
 | in_service_at   | TIMESTAMPTZ | Não             | Data e hora em que o operador leu o QR Code                                                                             |
@@ -513,11 +517,11 @@ Armazena cada tentativa de pagamento de um pedido. Um pedido pode ter várias te
 | id                | UUID        | Sim             | Identificador único da tentativa de pagamento                                   |
 | order_id          | UUID        | Sim             | Referência ao pedido. Chave estrangeira para a tabela orders                    |
 | method            | TEXT        | Sim             | Forma de pagamento da tentativa: pix ou credit_card                             |
-| status            | TEXT        | Sim             | Estado da tentativa: pending, paid, failed ou expired                           |
+| status            | TEXT        | Sim             | Estado da tentativa: pending, paid, failed, expired ou cancelled (Pix cancelado quando o consumidor troca para o cartão). Cada pedido tem no máximo uma tentativa pending por vez |
 | amount            | DECIMAL     | Sim             | Valor cobrado na tentativa                                                      |
 | pagarme_order_id  | TEXT        | Sim             | Identificador do pedido no Pagar.me                                             |
 | pagarme_charge_id | TEXT        | Não             | Identificador da cobrança no Pagar.me, usado nos webhooks e nos estornos. Único |
-| expires_at        | TIMESTAMPTZ | Não             | Prazo de pagamento do Pix (15 minutos). Não se aplica ao cartão                 |
+| expires_at        | TIMESTAMPTZ | Não             | Prazo de pagamento do Pix, igual ao horário limite do pedido (15 minutos após a criação do pedido) e enviado ao Pagar.me como expiração da cobrança. Não se aplica ao cartão |
 | paid_at           | TIMESTAMPTZ | Não             | Data e hora da aprovação da tentativa                                           |
 | created_at        | TIMESTAMPTZ | Sim             | Data e hora de criação da tentativa                                             |
 | updated_at        | TIMESTAMPTZ | Sim             | Data e hora da última alteração do registro                                     |
@@ -537,23 +541,23 @@ Registra cada aviso recebido do Pagar.me. Garante a idempotência: um aviso repe
 
 ## 8.11 Tabela: refunds
 
-Registra cada estorno realizado, parcial ou total, com o operador responsável, permitindo a auditoria pelo estabelecimento.
+Registra cada estorno realizado, parcial ou total, com o operador responsável, permitindo a auditoria pelo estabelecimento. Também registra os estornos automáticos feitos pelo sistema, sem operador: pagamento confirmado depois de o pedido expirar e pagamento em duplicidade.
 
 | **Campo**   | **Tipo**    | **Obrigatório** | **Descrição**                                                                                             |
 |-------------|-------------|-----------------|-----------------------------------------------------------------------------------------------------------|
 | id          | UUID        | Sim             | Identificador único do estorno                                                                            |
 | order_id    | UUID        | Sim             | Referência ao pedido estornado. Chave estrangeira para a tabela orders                                    |
 | payment_id  | UUID        | Sim             | Referência à tentativa de pagamento aprovada que será estornada. Chave estrangeira para a tabela payments |
-| operator_id | UUID        | Sim             | Referência ao operador que registrou o estorno. Chave estrangeira para a tabela operators                 |
+| operator_id | UUID        | Não             | Referência ao operador que registrou o estorno. Chave estrangeira para a tabela operators. Vazio nos estornos automáticos do sistema |
 | amount      | DECIMAL     | Sim             | Valor devolvido ao consumidor                                                                             |
-| reason      | TEXT        | Sim             | Motivo do estorno: item_sold_out (item esgotado) ou order_cancelled (pedido inteiro estornado)            |
+| reason      | TEXT        | Sim             | Motivo do estorno: item_sold_out (item esgotado) ou order_cancelled (pedido inteiro estornado), registrados pelo operador; late_payment (pagamento confirmado após a expiração do pedido) ou duplicate_payment (segunda tentativa aprovada para o mesmo pedido), registrados automaticamente pelo sistema. operator_id é obrigatório nos dois primeiros e vazio nos dois últimos (restrição CHECK) |
 | status      | TEXT        | Sim             | Situação do estorno no Pagar.me: pending, completed ou failed                                             |
 | created_at  | TIMESTAMPTZ | Sim             | Data e hora em que o estorno foi registrado                                                               |
 | updated_at  | TIMESTAMPTZ | Sim             | Data e hora da última alteração do registro                                                               |
 
 ## 8.12 Tabela: refund_items
 
-Registra quais itens e quantidades fizeram parte de cada estorno.
+Registra quais itens e quantidades fizeram parte de cada estorno. Os estornos automáticos do sistema (late_payment e duplicate_payment) devolvem a tentativa de pagamento inteira e não possuem registros nesta tabela.
 
 | **Campo**     | **Tipo**    | **Obrigatório** | **Descrição**                                                                       |
 |---------------|-------------|-----------------|-------------------------------------------------------------------------------------|
