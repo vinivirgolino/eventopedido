@@ -56,7 +56,7 @@ backend/src/
 
 ## Autenticação por perfil
 - **Estabelecimento e admin**: Supabase Auth com e-mail e senha. `establishments.user_id` aponta para `auth.users`. Admin identificado por `app_metadata.role = "admin"`
-- **Operador**: não tem conta no Supabase Auth. O backend valida o código (hash HMAC-SHA-256 em `operators.access_code_hash`), emite um token próprio que expira em `events.ends_at` e confere `is_active` a cada requisição. Limite de 5 tentativas de login
+- **Operador**: não tem conta no Supabase Auth. O backend valida o código (hash HMAC-SHA-256 em `operators.access_code_hash`), emite um token próprio que expira em `events.ends_at` e confere `is_active` a cada requisição. Limite de 5 tentativas de login por IP, contadas em memória (ex.: `express-rate-limit`). Isso só funciona com a instância única da Railway, uma limitação conhecida: com várias instâncias, a contagem precisa ir para o banco ou para um cache compartilhado
 - **Cliente**: sessão anônima do Supabase Auth, criada de forma invisível, com CAPTCHA invisível. Pedidos ficam ligados a `orders.client_id`. Rotina diária remove sessões sem pedido em aberto e inativas há mais de 24 h, esvaziando `client_id` antes
 
 ## Acesso a dados
@@ -73,7 +73,7 @@ backend/src/
 - Estorno parcial ou total feito pelo operador marca o item do evento como `is_available = false`
 - Cardápios do estabelecimento (`menus`) são modelos: os itens são copiados para `menu_items` na criação do evento
 - Estabelecimento com `approval_status` diferente de `approved` não publica eventos e não recebe o link/QR. `slug` não pode ser alterado pelo estabelecimento após a aprovação
-- `order_code` é único só dentro do evento; buscas globais (admin) podem retornar mais de um pedido
+- `order_code` no formato `GH7-382` (2 letras, 1 dígito, hífen, 3 dígitos), sem 0/O e 1/I, gerado aleatoriamente; se colidir, gera outro. É único só dentro do evento, então buscas globais (admin) podem retornar mais de um pedido
 
 ## Pagamentos
 - Nunca considerar um pedido como pago com base em informação enviada pelo cliente
@@ -83,6 +83,12 @@ backend/src/
 - Não armazenar dados bancários do estabelecimento: enviá-los ao Pagar.me e guardar só `pagarme_recipient_id`
 - Registrar todos os estados e transições (`payments`, `refunds`, `refund_items`)
 - Valor do pedido sempre calculado no backend a partir de `menu_items`
+- Pix criado no Pagar.me com expiração igual ao limite do pedido (15 min após a criação do pedido), para o próprio Pagar.me recusar pagamento fora do prazo
+- No máximo uma tentativa `pending` por pedido. Na troca de Pix para cartão, cancelar antes o Pix no Pagar.me (`payments.status = 'cancelled'`); se o Pix já tiver sido pago, recusar a troca
+- Estorno automático do sistema (`refunds.operator_id` vazio, sem `refund_items`, sem somar em `orders.refunded_amount` e sem mudar o status do pedido):
+  - `late_payment`: `charge.paid` chega com o pedido já `expired`
+  - `duplicate_payment`: segunda tentativa aprovada para um pedido já pago
+- `refunds.reason`: `item_sold_out` e `order_cancelled` exigem `operator_id`; `late_payment` e `duplicate_payment` não têm operador (restrição CHECK)
 
 ## Autorização
 - Autenticação e autorização tratadas separadamente
@@ -106,12 +112,14 @@ backend/src/
 
 ## Testes
 - Testar regras de negócio críticas e os endpoints principais
-- Fluxos obrigatórios: webhook repetido, leitura simultânea do mesmo QR, estorno parcial, expiração do Pix, acesso a recurso de outro estabelecimento
+- Fluxos obrigatórios: webhook repetido, leitura simultânea do mesmo QR, estorno parcial, expiração do Pix, pagamento confirmado após a expiração, pagamento em duplicidade, acesso a recurso de outro estabelecimento
 - Uma tarefa só está concluída quando os testes necessários estiverem passando
 
 ## Fluxo de trabalho
 - As tarefas estão no GitHub Projects "EventoPedido — MVP", como issues numeradas e agrupadas por fase (milestones)
-- Uma branch por issue: `feat/<numero>-<descricao-curta>`, `fix/...`, `chore/...`, `docs/...`
+- Toda tarefa começa criando a própria branch a partir da `main` atualizada, antes de qualquer edição. Não existe branch `develop` ou equivalente
+- Uma branch por issue: `feat/<numero>-<descricao-curta>`, `fix/...`, `chore/...`, `docs/...`. Tarefa sem issue usa só a descrição (ex.: `docs/decisoes-pagamento-operador`)
+- Os commits são feitos pelo desenvolvedor: deixar as alterações sem commit para revisão e sugerir a mensagem
 - Commits em português no formato convencional: `feat:`, `fix:`, `chore:`, `refactor:`, `docs:`, `test:`
 - Todo trabalho entra na `main` por pull request. No corpo do PR, use `Closes #<numero>` para fechar a issue
 - Antes de abrir o PR: testes, lint e checagem de tipos passando
