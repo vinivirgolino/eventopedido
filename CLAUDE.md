@@ -119,7 +119,7 @@ backend/src/
 - As tarefas estão no GitHub Projects "EventoPedido — MVP", como issues numeradas e agrupadas por fase (milestones)
 - Toda tarefa começa criando a própria branch a partir da `main` atualizada, antes de qualquer edição. Não existe branch `develop` ou equivalente
 - Uma branch por issue: `feat/<numero>-<descricao-curta>`, `fix/...`, `chore/...`, `docs/...`. Tarefa sem issue usa só a descrição (ex.: `docs/decisoes-pagamento-operador`)
-- Os commits são feitos pelo desenvolvedor: deixar as alterações sem commit para revisão e sugerir a mensagem
+- Os commits são feitos pelo desenvolvedor, só com o título: deixar as alterações sem commit e sugerir o título. Depois do commit, o Claude faz o push, abre o PR com a descrição completa (o commit não tem corpo) e faz o merge
 - Commits em português no formato convencional: `feat:`, `fix:`, `chore:`, `refactor:`, `docs:`, `test:`
 - Todo trabalho entra na `main` por pull request. No corpo do PR, use `Closes #<numero>` para fechar a issue
 - Antes de abrir o PR: testes, lint e checagem de tipos passando
