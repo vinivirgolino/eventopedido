@@ -116,13 +116,12 @@ backend/src/
 - Uma tarefa só está concluída quando os testes necessários estiverem passando
 
 ## Fluxo de trabalho
-- As tarefas estão no GitHub Projects "EventoPedido — MVP", como issues numeradas e agrupadas por fase (milestones)
-- Toda tarefa começa criando a própria branch a partir da `main` atualizada, antes de qualquer edição. Não existe branch `develop` ou equivalente
-- Uma branch por issue: `feat/<numero>-<descricao-curta>`, `fix/...`, `chore/...`, `docs/...`. Tarefa sem issue usa só a descrição (ex.: `docs/decisoes-pagamento-operador`)
-- Os commits são feitos pelo desenvolvedor, só com o título: deixar as alterações sem commit e sugerir o título. Depois do commit, o Claude faz o push, abre o PR com a descrição completa (o commit não tem corpo) e faz o merge
-- Commits em português no formato convencional: `feat:`, `fix:`, `chore:`, `refactor:`, `docs:`, `test:`
-- Todo trabalho entra na `main` por pull request. No corpo do PR, use `Closes #<numero>` para fechar a issue
-- Antes de abrir o PR: testes, lint e checagem de tipos passando
+1. Antes de começar uma issue, crie a branch a partir da `main` atualizada: `<tipo>/<numero>-<descricao-curta>` (tipos: `feat`, `fix`, `chore`, `docs`, `refactor`, `test`). Nunca trabalhe na `main`.
+2. Faça o trabalho. Nunca faça commit nem push: isso é feito pelo Vinicius.
+3. Ao terminar, confira: testes, lint e checagem de tipos passando, nenhum `.env` ou chave nos arquivos. Depois mostre um resumo do que mudou e sugira o título do commit no padrão convencional, em português.
+4. Depois que o Vinicius fizer o commit e o Sync Changes, abra o PR com `gh pr create`, com título igual ao do commit e descrição com: o que foi feito, como testar e `Closes #<numero>`.
+5. Faça o merge com `gh pr merge --merge`. Não apague a branch.
+6. Volte para a `main` e atualize (`git switch main` e `git pull`).
 
 ## Comportamento
 - Responda sempre em português
