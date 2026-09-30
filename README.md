@@ -68,7 +68,7 @@ As instruções entram na issue #6 (configuração dos projetos Flutter). Os app
 
 1. Cada issue tem a sua própria branch, criada a partir da `main` atualizada: `feat/<numero>-<descricao>`, `fix/...`, `chore/...` ou `docs/...`. Não existe branch `develop`.
 2. Commits em português no formato convencional: `feat:`, `fix:`, `chore:`, `refactor:`, `docs:` ou `test:`.
-3. Tudo entra na `main` por pull request, com `Closes #<numero>` na descrição.
+3. Tudo entra na `main` por pull request, com `Closes #<numero>` na descrição. A `main` é protegida: não aceita push direto, nem de administradores.
 4. Antes do PR, testes, lint e checagem de tipos precisam estar passando.
 
 ## Segurança
