@@ -73,6 +73,9 @@
   .banner { display: flex; align-items: center; gap: 14px; border-radius: 14px; padding: 14px 18px; font-size: 14px; line-height: 1.5; border: 1px solid; }
   .banner-pendente { background: rgba(214,158,46,0.08); border-color: rgba(214,158,46,0.35); color: #975A16; }
   .banner-aprovado { background: rgba(56,161,105,0.08); border-color: rgba(56,161,105,0.35); color: #276749; }
+  .banner-mp { background: var(--azul-claro, #EBF4FF); border-color: #BEE3F8; color: #1A4F8A; }
+  .btn-mp { background: #2B6CB0; color: #fff; border: none; border-radius: 10px; padding: 10px 14px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; white-space: nowrap; }
+  .sidebar-mp { margin-top: 8px; font-size: 12px; }
   .banner .banner-texto { flex: 1; }
   .banner strong { display: block; }
 
@@ -263,13 +266,8 @@
         <div class="slug-preview">eventopedido.com.br/<strong id="slug-preview">bar-do-ze</strong> · depois da aprovação, não pode ser alterado (ele vai impresso no QR Code).</div>
       </div>
     </div>
-    <div class="form-secao">Dados bancários para receber</div>
-    <div class="form-grid">
-      <div class="form-group full"><label for="c-banco">Banco</label><select id="c-banco"><option>001 · Banco do Brasil</option><option>104 · Caixa</option><option>237 · Bradesco</option><option>260 · Nu Pagamentos</option><option>341 · Itaú</option></select></div>
-      <div class="form-group"><label for="c-ag">Agência</label><input id="c-ag" placeholder="0000"></div>
-      <div class="form-group"><label for="c-conta">Conta com dígito</label><input id="c-conta" placeholder="00000-0"></div>
-    </div>
-    <div class="info-box">🔒 Os dados bancários vão <strong>direto para o Pagar.me</strong>, que faz os repasses. Eles não ficam guardados na plataforma.</div>
+    <div class="form-secao">Recebimento das vendas</div>
+    <div class="info-box">💳 As vendas caem <strong>direto na conta Mercado Pago</strong> do estabelecimento. Depois de criar a conta, é só clicar em <strong>“Conectar Mercado Pago”</strong> no painel e autorizar. Não tem conta? Dá para criar uma grátis, com CPF ou CNPJ. A plataforma não guarda dados bancários nem a sua senha do Mercado Pago.</div>
     <button class="btn btn-azul" onclick="cadastrar()">Criar conta</button>
     <div class="auth-sub" style="text-align:center;">Já tem conta? <button class="auth-link" onclick="mostrarAuth('auth-login')">Entrar</button></div>
   </div>
@@ -288,10 +286,10 @@
     <button class="nav-item" data-tela="tela-itens-evento" onclick="irPara('tela-itens-evento')"><span class="nav-icon">🍺</span> Itens do Evento</button>
     <button class="nav-item" data-tela="tela-operadores" onclick="irPara('tela-operadores')"><span class="nav-icon">👥</span> Operadores</button>
     <button class="nav-item" data-tela="tela-pedidos" onclick="irPara('tela-pedidos')"><span class="nav-icon">🧾</span> Pedidos ao Vivo</button>
-    <button class="nav-item" data-tela="tela-estornos" onclick="irPara('tela-estornos')"><span class="nav-icon">↩️</span> Estornos</button>
     <div class="sidebar-bottom">
       <div class="sidebar-user">Bar do Zé</div>
       <div style="margin-top:4px;">contato@bardoze.com.br</div>
+      <div class="sidebar-mp" id="sidebar-mp">💳 Mercado Pago não conectado</div>
       <button class="sidebar-sair" onclick="sair()">Sair</button>
     </div>
   </aside>
@@ -304,6 +302,12 @@
       <button class="btn-sim" onclick="aprovar()">Simular aprovação</button>
     </div>
 
+    <div class="banner banner-mp" id="banner-mp">
+      <span style="font-size:22px;">💳</span>
+      <div class="banner-texto"><strong>Conecte sua conta Mercado Pago</strong>É nela que você recebe as vendas. Você faz login no próprio Mercado Pago e autoriza a plataforma a cobrar em seu nome. Sem a conta conectada, não é possível publicar eventos.</div>
+      <button class="btn-mp" onclick="conectarMP()">Conectar Mercado Pago</button>
+    </div>
+
     <!-- DASHBOARD -->
     <div class="tela ativa" id="tela-dashboard">
       <div class="topbar">
@@ -314,8 +318,8 @@
         <button class="btn btn-outline" onclick="irPara('tela-pedidos')">Ver pedidos ao vivo →</button>
       </div>
       <div class="stats-grid">
-        <div class="stat-card stat-card-azul"><div class="stat-label">Faturamento</div><div class="stat-valor c-azul">R$ 1.822</div><div class="stat-sub">Hoje, já descontados R$ 18 de estornos</div></div>
-        <div class="stat-card stat-card-verde"><div class="stat-label">Pedidos pagos</div><div class="stat-valor c-verde">94</div><div class="stat-sub">Confirmados pelo Pagar.me</div></div>
+        <div class="stat-card stat-card-azul"><div class="stat-label">Faturamento</div><div class="stat-valor c-azul">R$ 1.822</div><div class="stat-sub">Hoje, valor bruto dos pedidos pagos</div></div>
+        <div class="stat-card stat-card-verde"><div class="stat-label">Pedidos pagos</div><div class="stat-valor c-verde">94</div><div class="stat-sub">Confirmados pelo Mercado Pago</div></div>
         <div class="stat-card stat-card-medio"><div class="stat-label">Ticket médio</div><div class="stat-valor c-medio">R$ 19,38</div><div class="stat-sub">Por pedido</div></div>
         <div class="stat-card stat-card-amarelo"><div class="stat-label">Retirados</div><div class="stat-valor c-amarelo">81</div><div class="stat-sub">12 aguardando · 1 em atendimento</div></div>
       </div>
@@ -462,27 +466,8 @@
         <div class="pedido-live"><div class="pedido-live-topo"><span class="pedido-live-cod">GH7-382</span><span class="pedido-live-hora">22:14</span></div><div class="pedido-live-itens">2x Skol Lata 350ml<br>1x Heineken Long Neck</div><div class="pedido-live-rodape"><span class="badge badge-amarelo"><span class="pulse-dot"></span> Em atendimento · Bar Principal</span><span class="pedido-live-total">R$ 30,00</span></div></div>
         <div class="pedido-live"><div class="pedido-live-topo"><span class="pedido-live-cod">MK3-915</span><span class="pedido-live-hora">22:17</span></div><div class="pedido-live-itens">1x Caipirinha<br>1x Carne de Sol c/ Macaxeira</div><div class="pedido-live-rodape"><span class="badge badge-azul">Aguardando retirada</span><span class="pedido-live-total">R$ 43,00</span></div></div>
         <div class="pedido-live"><div class="pedido-live-topo"><span class="pedido-live-cod">PX1-447</span><span class="pedido-live-hora">22:19</span></div><div class="pedido-live-itens">3x Água Mineral 500ml</div><div class="pedido-live-rodape"><span class="badge badge-verde">✓ Retirado · 22:31 · Maria Santos</span><span class="pedido-live-total">R$ 15,00</span></div></div>
-        <div class="pedido-live"><div class="pedido-live-topo"><span class="pedido-live-cod">BZ9-201</span><span class="pedido-live-hora">22:21</span></div><div class="pedido-live-itens">2x Espetinho de Frango<br><span style="text-decoration:line-through;">1x Caipirinha</span> <span style="color:var(--erro);">estornado</span></div><div class="pedido-live-rodape"><span class="badge badge-verde">✓ Retirado · estorno parcial</span><span class="pedido-live-total">R$ 24,00</span></div></div>
+        <div class="pedido-live"><div class="pedido-live-topo"><span class="pedido-live-cod">BZ9-201</span><span class="pedido-live-hora">22:21</span></div><div class="pedido-live-itens">2x Espetinho de Frango<br><span style="text-decoration:line-through;">1x Caipirinha</span> <span style="color:var(--amarelo);">acabou · não entregue</span></div><div class="pedido-live-rodape"><span class="badge badge-amarelo">✓ Retirado · 1 item não entregue</span><span class="pedido-live-total">R$ 42,00</span></div></div>
       </div>
-    </div>
-
-    <!-- ESTORNOS -->
-    <div class="tela" id="tela-estornos">
-      <div class="topbar">
-        <div><div class="page-titulo">Estornos</div><div class="page-sub">Forró das Quartas · o valor sempre volta para o meio de pagamento do cliente</div></div>
-        <span class="badge badge-erro" style="align-self:center;">Total estornado: R$ 18,00</span>
-      </div>
-      <div class="card-box">
-        <div class="tabela-wrap">
-        <table>
-          <thead><tr><th>Horário</th><th>Pedido</th><th>Itens</th><th>Valor</th><th>Operador</th><th>Motivo</th><th>Situação</th></tr></thead>
-          <tbody>
-            <tr><td>23:10</td><td><strong>BZ9-201</strong></td><td>1x Caipirinha</td><td style="color:var(--erro);font-weight:600;">R$ 18,00</td><td>João Silva · Bar Principal</td><td>Item esgotado</td><td><span class="badge badge-verde">Concluído</span></td></tr>
-          </tbody>
-        </table>
-        </div>
-      </div>
-      <div class="info-box">Conforme as regras do Pagar.me, a taxa do Pix e as taxas fixas do cartão não são devolvidas em estornos. Por isso, o item esgotado é desligado automaticamente no cardápio do evento.</div>
     </div>
 
   </main>
@@ -561,6 +546,7 @@
 <script>
   // ------------------------------------------------------------------ estado
   let aprovado = false;
+  let mpConectado = false;
   const CAT_NOME = { beverage: 'Bebidas', snack: 'Petiscos', food: 'Comidas' };
   const CAT_TITULO = { beverage: '🍺 Bebidas', snack: '🍢 Petiscos', food: '🍽️ Comidas' };
 
@@ -640,6 +626,28 @@
     renderizarTudo();
   }
 
+  // simula a ida ao Mercado Pago (OAuth) e a volta com a conta autorizada
+  function conectarMP() {
+    if (!confirm('Você será levado ao Mercado Pago para entrar na sua conta e autorizar a plataforma. Simular autorização?')) return;
+    mpConectado = true;
+    const b = document.getElementById('banner-mp');
+    b.className = 'banner banner-aprovado';
+    b.innerHTML = '<span style="font-size:22px;">✅</span><div class="banner-texto"><strong>Conta Mercado Pago conectada</strong>As vendas vão cair direto na sua conta. A comissão de 5% da plataforma é descontada automaticamente em cada venda.</div><button class="btn-sim" onclick="this.parentElement.style.display=\'none\'">Fechar</button>';
+    document.getElementById('sidebar-mp').innerHTML = '✅ Mercado Pago conectado · <button class="auth-link" style="color:inherit;font-size:12px;" onclick="desconectarMP()">desconectar</button>';
+    renderizarTudo();
+    toast('✓ Conta Mercado Pago conectada.');
+  }
+  function desconectarMP() {
+    if (!confirm('Desconectar a conta Mercado Pago? Os eventos não poderão receber novos pedidos até você conectar de novo.')) return;
+    mpConectado = false;
+    const b = document.getElementById('banner-mp');
+    b.className = 'banner banner-mp';
+    b.style.display = 'flex';
+    b.innerHTML = '<span style="font-size:22px;">💳</span><div class="banner-texto"><strong>Conecte sua conta Mercado Pago</strong>É nela que você recebe as vendas. Sem a conta conectada, não é possível publicar eventos.</div><button class="btn-mp" onclick="conectarMP()">Conectar Mercado Pago</button>';
+    document.getElementById('sidebar-mp').textContent = '💳 Mercado Pago não conectado';
+    renderizarTudo();
+  }
+
   // ------------------------------------------------------------------ navegação
   function irPara(id) {
     document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
@@ -678,7 +686,7 @@
       let acao = '';
       if (e.status === 'ativo') acao = `<button class="btn btn-outline btn-sm" onclick="irPara('tela-dashboard')">Gerenciar</button>`;
       if (e.status === 'agendado') acao = `<button class="btn btn-outline btn-sm" onclick="irPara('tela-itens-evento')">Configurar</button>`;
-      if (e.status === 'rascunho') acao = `<button class="btn btn-azul btn-sm" onclick="publicar(${i})" ${aprovado ? '' : 'title="Disponível após a aprovação do cadastro"'}>Publicar</button>`;
+      if (e.status === 'rascunho') acao = `<button class="btn btn-azul btn-sm" onclick="publicar(${i})" ${aprovado && mpConectado ? '' : 'title="Disponível após a aprovação do cadastro e a conexão do Mercado Pago"'}>Publicar</button>`;
       if (e.status === 'encerrado') acao = `<button class="btn btn-ghost btn-sm">Ver relatório</button>`;
       return `<tr><td><strong>${e.nome}</strong></td><td>${e.ini}</td><td>${e.fim}</td><td>${e.pedidos}</td>
         <td style="color:var(--azul);font-weight:600;">${e.fat}</td><td>${STATUS[e.status]}</td><td>${acao}</td></tr>`;
@@ -686,6 +694,7 @@
   }
   function publicar(i) {
     if (!aprovado) { toast('🔒 A publicação é liberada após a aprovação do cadastro.'); return; }
+    if (!mpConectado) { toast('💳 Conecte sua conta Mercado Pago para publicar eventos.'); return; }
     eventos[i].status = 'agendado';
     renderizarEventos();
     toast('✓ Evento publicado! Ele já aparece como “Começa às 21h”.');
