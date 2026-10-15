@@ -154,7 +154,7 @@
   .pedido-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
   .item-linha { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--cinza-borda); font-size: 14px; }
   .item-linha:last-child { border-bottom: none; }
-  .item-linha.estornado span:first-child { text-decoration: line-through; color: var(--cinza-sub); }
+  .item-linha.nao-entregue span:first-child { text-decoration: line-through; color: var(--cinza-sub); }
   .timeline { display: flex; flex-direction: column; }
   .evento-tl { display: grid; grid-template-columns: 52px 16px 1fr; gap: 10px; align-items: start; padding-bottom: 14px; position: relative; }
   .evento-tl:last-child { padding-bottom: 0; }
@@ -256,7 +256,7 @@
       <div class="stats-grid">
         <div class="stat-card stat-card-azul"><div class="stat-label">Estabelecimentos ativos</div><div class="stat-valor" id="g-ativos">—</div><div class="stat-sub">Com cadastro aprovado</div></div>
         <div class="stat-card stat-card-verde"><div class="stat-label">Pedidos hoje</div><div class="stat-valor">214</div><div class="stat-sub">Pagos e confirmados</div></div>
-        <div class="stat-card stat-card-medio"><div class="stat-label">Transacionado hoje</div><div class="stat-valor">R$ 4.286</div><div class="stat-sub">Já descontados R$ 36 de estornos</div></div>
+        <div class="stat-card stat-card-medio"><div class="stat-label">Transacionado hoje</div><div class="stat-valor">R$ 4.286</div><div class="stat-sub">Pedidos pagos em todos os eventos</div></div>
         <div class="stat-card destaque"><div class="stat-label">Sua receita hoje</div><div class="stat-valor">R$ 214,30</div><div class="stat-sub">5% do transacionado</div></div>
       </div>
       <div class="card-box">
@@ -289,8 +289,8 @@
       <div class="stats-grid">
         <div class="stat-card stat-card-verde"><div class="stat-label">Vendas no mês</div><div class="stat-valor" id="f-vendas">—</div><div class="stat-sub" id="f-vendas-sub">—</div></div>
         <div class="stat-card stat-card-azul"><div class="stat-label">Valor transacionado</div><div class="stat-valor" id="f-bruto">—</div><div class="stat-sub" id="f-ticket">—</div></div>
-        <div class="stat-card stat-card-erro"><div class="stat-label">Estornos</div><div class="stat-valor" id="f-estornos">—</div><div class="stat-sub" id="f-estornos-sub">—</div></div>
-        <div class="stat-card destaque"><div class="stat-label">Sua receita no mês</div><div class="stat-valor" id="f-receita">—</div><div class="stat-sub">5% do transacionado, já descontados os estornos</div></div>
+        <div class="stat-card stat-card-medio"><div class="stat-label">Eventos no mês</div><div class="stat-valor" id="f-eventos">—</div><div class="stat-sub" id="f-eventos-sub">—</div></div>
+        <div class="stat-card destaque"><div class="stat-label">Sua receita no mês</div><div class="stat-valor" id="f-receita">—</div><div class="stat-sub">5% do valor transacionado</div></div>
       </div>
 
       <div class="card-box">
@@ -311,13 +311,13 @@
         <div class="card-box-header"><div class="card-box-titulo">Por estabelecimento</div></div>
         <div class="tabela-wrap">
           <table>
-            <thead><tr><th>Estabelecimento</th><th class="num">Eventos</th><th class="num">Vendas</th><th class="num">Transacionado</th><th class="num">Estornado</th><th class="num">Sua receita (5%)</th></tr></thead>
+            <thead><tr><th>Estabelecimento</th><th class="num">Eventos</th><th class="num">Vendas</th><th class="num">Transacionado</th><th class="num">Sua receita (5%)</th></tr></thead>
             <tbody id="f-tabela"></tbody>
             <tfoot id="f-total"></tfoot>
           </table>
         </div>
       </div>
-      <div class="info-box">A taxa do Pagar.me é descontada da parte do estabelecimento, então <strong>não reduz a sua receita</strong>. Nos estornos, os 5% são devolvidos na proporção do valor estornado. Os valores são brutos, antes de impostos e custos de infraestrutura.</div>
+      <div class="info-box">A taxa do Mercado Pago é descontada da parte do estabelecimento, então <strong>não reduz a sua receita</strong>. A comissão de 5% é repassada automaticamente pelo split em cada venda. Os valores são brutos, antes de impostos e custos de infraestrutura.</div>
     </div>
 
     <!-- BUSCA DE PEDIDO -->
@@ -429,17 +429,17 @@
   // ------------------------------------------------------------------ dados de cadastros
   let cadastros = [
     { id: 1, nome: 'Bar do Zé', slug: 'bar-do-ze', tipo: 'cnpj', doc: '12.345.678/0001-95', email: 'contato@bardoze.com.br',
-      criado: '29 set 2026, 18:42', status: 'pending', recebedor: 're_cm1a2b3c4d5e', aprovado: null, eventos: 3, cardapios: 2 },
+      criado: '29 set 2026, 18:42', status: 'pending', contaMp: '1847362510', aprovado: null, eventos: 3, cardapios: 2 },
     { id: 2, nome: 'Coletivo Sonora', slug: 'coletivo-sonora', tipo: 'cpf', doc: '123.456.789-09', email: 'sonora.coletivo@gmail.com',
-      criado: '28 set 2026, 21:10', status: 'pending', recebedor: 're_cm9z8y7x6w5v', aprovado: null, eventos: 1, cardapios: 1 },
+      criado: '28 set 2026, 21:10', status: 'pending', contaMp: null, aprovado: null, eventos: 1, cardapios: 1 },
     { id: 3, nome: 'Casa Aurora', slug: 'casa-aurora', tipo: 'cnpj', doc: '98.765.432/0001-10', email: 'eventos@casaaurora.com.br',
-      criado: '02 jul 2026, 14:05', status: 'approved', recebedor: 're_cm4f5g6h7i8j', aprovado: '03 jul 2026, 09:30', eventos: 22, cardapios: 3 },
+      criado: '02 jul 2026, 14:05', status: 'approved', contaMp: '1203948576', aprovado: '03 jul 2026, 09:30', eventos: 22, cardapios: 3 },
     { id: 4, nome: 'Forró da Vila', slug: 'forro-da-vila', tipo: 'cnpj', doc: '45.678.901/0001-23', email: 'contato@forrodavila.com.br',
-      criado: '15 jul 2026, 11:20', status: 'approved', recebedor: 're_cm2k3l4m5n6o', aprovado: '15 jul 2026, 16:02', eventos: 18, cardapios: 1 },
+      criado: '15 jul 2026, 11:20', status: 'approved', contaMp: '1569023847', aprovado: '15 jul 2026, 16:02', eventos: 18, cardapios: 1 },
     { id: 5, nome: 'Bar Estação', slug: 'bar-estacao', tipo: 'cnpj', doc: '23.456.789/0001-01', email: 'gerencia@barestacao.com.br',
-      criado: '20 ago 2026, 10:00', status: 'approved', recebedor: 're_cm7p8q9r0s1t', aprovado: '21 ago 2026, 08:45', eventos: 7, cardapios: 2 },
+      criado: '20 ago 2026, 10:00', status: 'approved', contaMp: '1938475620', aprovado: '21 ago 2026, 08:45', eventos: 7, cardapios: 2 },
     { id: 6, nome: 'Boteco Teste 123', slug: 'boteco-teste-123', tipo: 'cnpj', doc: '11.111.111/0001-11', email: 'teste@teste.com',
-      criado: '05 set 2026, 02:14', status: 'rejected', recebedor: null, aprovado: null, eventos: 0, cardapios: 0 },
+      criado: '05 set 2026, 02:14', status: 'rejected', contaMp: null, aprovado: null, eventos: 0, cardapios: 0 },
   ];
 
   // ------------------------------------------------------------------ visão geral
@@ -468,23 +468,22 @@
     const [ano, mes] = chave.split('-').map(Number);
     const dias = [];
     const lojas = {};
-    m.lojas.forEach(l => lojas[l] = { eventos: 0, vendas: 0, bruto: 0, estornado: 0 });
+    m.lojas.forEach(l => lojas[l] = { eventos: 0, vendas: 0, bruto: 0 });
     for (let d = 1; d <= m.dias; d++) {
       const data = new Date(ano, mes - 1, d);
       const iso = `${chave}-${String(d).padStart(2, '0')}`;
-      let vendas = 0, bruto = 0, estornado = 0;
+      let vendas = 0, bruto = 0;
       if (d <= m.ate) {
         m.lojas.forEach((l, li) => {
           if (!AGENDA[l].includes(data.getDay()) || iso < INICIO[l]) return;
           const crescimento = 1 + (mes - 7) * 0.12;
           const qtd = Math.round((90 + pseudo(d * 7 + li * 13 + mes) * 70) * crescimento);
           const valor = qtd * TICKET[l] * (0.92 + pseudo(d + li + mes * 3) * 0.16);
-          const est = pseudo(d * 3 + li) > 0.7 ? Math.round(valor * 0.012 / 6) * 6 : 0;
-          vendas += qtd; bruto += valor; estornado += est;
-          lojas[l].eventos++; lojas[l].vendas += qtd; lojas[l].bruto += valor; lojas[l].estornado += est;
+          vendas += qtd; bruto += valor;
+          lojas[l].eventos++; lojas[l].vendas += qtd; lojas[l].bruto += valor;
         });
       }
-      dias.push({ d, futuro: d > m.ate, vendas, bruto, estornado });
+      dias.push({ d, futuro: d > m.ate, vendas, bruto });
     }
     return { dias, lojas };
   }
@@ -504,27 +503,26 @@
     const { dias, lojas } = dadosAtuais;
     const vendas = dias.reduce((a, x) => a + x.vendas, 0);
     const bruto = dias.reduce((a, x) => a + x.bruto, 0);
-    const est = dias.reduce((a, x) => a + x.estornado, 0);
-    const liquido = bruto - est;
-    const nEstornos = dias.filter(x => x.estornado > 0).length * 3;
+    const liquido = bruto;
     document.getElementById('f-vendas').textContent = fmtInt(vendas);
     document.getElementById('f-vendas-sub').textContent = `pedidos pagos em ${dias.filter(x => x.vendas).length} dias com evento`;
     document.getElementById('f-bruto').textContent = fmt(liquido);
     document.getElementById('f-ticket').textContent = `Ticket médio de ${fmt(liquido / vendas)}`;
-    document.getElementById('f-estornos').textContent = fmt(est);
-    document.getElementById('f-estornos-sub').textContent = `${nEstornos} estornos · ${(est / bruto * 100).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}% do total vendido`;
+    const nEventos = Object.values(lojas).reduce((a, l) => a + l.eventos, 0);
+    document.getElementById('f-eventos').textContent = fmtInt(nEventos);
+    document.getElementById('f-eventos-sub').textContent = `em ${Object.values(lojas).filter(l => l.eventos).length} estabelecimentos`;
     document.getElementById('f-receita').textContent = fmt(liquido * 0.05);
     document.getElementById('grafico-titulo').textContent = `Vendas por dia · ${MESES[chave].nome}`;
 
     const linhas = Object.entries(lojas).sort((a, b) => b[1].bruto - a[1].bruto);
     document.getElementById('f-tabela').innerHTML = linhas.map(([nome, l]) => {
-      const liq = l.bruto - l.estornado;
+      const liq = l.bruto;
       return `<tr><td><strong>${nome}</strong></td><td class="num">${l.eventos}</td><td class="num">${fmtInt(l.vendas)}</td>
-        <td class="num">${fmt(liq)}</td><td class="num">${fmt(l.estornado)}</td><td class="num" style="font-weight:600;">${fmt(liq * 0.05)}</td></tr>`;
+        <td class="num">${fmt(liq)}</td><td class="num" style="font-weight:600;">${fmt(liq * 0.05)}</td></tr>`;
     }).join('');
     const tEv = linhas.reduce((a, [, l]) => a + l.eventos, 0);
     document.getElementById('f-total').innerHTML = `<tr><td>Total</td><td class="num">${tEv}</td><td class="num">${fmtInt(vendas)}</td>
-      <td class="num">${fmt(liquido)}</td><td class="num">${fmt(est)}</td><td class="num">${fmt(liquido * 0.05)}</td></tr>`;
+      <td class="num">${fmt(liquido)}</td><td class="num">${fmt(liquido * 0.05)}</td></tr>`;
     renderGrafico();
   }
 
@@ -540,7 +538,7 @@
     const svg = document.getElementById('grafico-svg');
     const W = svg.clientWidth || 800, H = 240;
     const esq = 56, dir = 8, topo = 10, base = 26;
-    const valores = dadosAtuais.dias.map(x => vista === 'qtd' ? x.vendas : x.bruto - x.estornado);
+    const valores = dadosAtuais.dias.map(x => vista === 'qtd' ? x.vendas : x.bruto);
     const { passo, topo: vMax } = escalaLimpa(Math.max(...valores, 1));
     const n = valores.length;
     const banda = (W - esq - dir) / n;
@@ -573,7 +571,7 @@
         const i = +h.dataset.i, x = dadosAtuais.dias[i];
         const barra = document.getElementById('b' + i); barra.classList.add('hover');
         const rect = barra.getBoundingClientRect(), bRect = box.getBoundingClientRect();
-        tip.innerHTML = `<strong>${x.d} de ${MESES[document.getElementById('mes').value].nome}</strong><br>${fmtInt(x.vendas)} vendas<br>${fmt(x.bruto - x.estornado)} transacionado<br>Sua receita: ${fmt((x.bruto - x.estornado) * 0.05)}`;
+        tip.innerHTML = `<strong>${x.d} de ${MESES[document.getElementById('mes').value].nome}</strong><br>${fmtInt(x.vendas)} vendas<br>${fmt(x.bruto)} transacionado<br>Sua receita: ${fmt(x.bruto * 0.05)}`;
         tip.style.display = 'block';
         const left = Math.min(Math.max(rect.left - bRect.left + rect.width / 2, 90), bRect.width - 90);
         tip.style.left = left + 'px';
@@ -590,35 +588,35 @@
   // ------------------------------------------------------------------ busca de pedido
   const PEDIDOS = {
     'GH7-382': [{
-      estab: 'Casa Aurora', evento: 'Sexta Aurora', data: '25 set 2026', status: 'collected', total: 56, estornado: 18, metodo: 'Pix',
-      itens: [{ q: 2, n: 'Skol Lata 350ml', v: 16 }, { q: 1, n: 'Heineken Long Neck', v: 14 }, { q: 1, n: 'Caipirinha', v: 18, est: true }, { q: 1, n: 'Água Mineral 500ml', v: 8 }],
+      estab: 'Casa Aurora', evento: 'Sexta Aurora', data: '25 set 2026', status: 'collected', total: 56, metodo: 'Pix',
+      itens: [{ q: 2, n: 'Skol Lata 350ml', v: 16 }, { q: 1, n: 'Heineken Long Neck', v: 14 }, { q: 1, n: 'Caipirinha', v: 18, naoEntregue: true }, { q: 1, n: 'Água Mineral 500ml', v: 8 }],
       linha: [
         ['22:10', 'Pedido criado', 'Aguardando pagamento', ''],
-        ['22:11', 'Pix pago', 'Webhook charge.paid recebido · ch_8f2k1m', 'tl-ok'],
+        ['22:11', 'Pix pago', 'Notificação do Mercado Pago · pagamento 1325478890 aprovado', 'tl-ok'],
         ['22:26', 'QR Code lido por Ana Lima', 'Bar Principal · pedido reservado', ''],
-        ['22:27', 'Estorno de R$ 18,00', '1x Caipirinha · item esgotado · concluído no Pagar.me', 'tl-alerta'],
+        ['22:27', 'Item acabou', '1x Caipirinha marcado como não entregue · item esgotado no cardápio', 'tl-alerta'],
         ['22:27', 'Entrega confirmada', 'QR Code invalidado', 'tl-ok'],
       ] }],
     'MK3-915': [
-      { estab: 'Forró da Vila', evento: 'Forró Pé de Serra', data: 'hoje', status: 'paid', total: 43, estornado: 0, metodo: 'Pix',
+      { estab: 'Forró da Vila', evento: 'Forró Pé de Serra', data: 'hoje', status: 'paid', total: 43, metodo: 'Pix',
         itens: [{ q: 1, n: 'Caipirinha', v: 18 }, { q: 1, n: 'Carne de Sol c/ Macaxeira', v: 25 }],
         linha: [
           ['21:40', 'Pedido criado', 'Aguardando pagamento', ''],
-          ['21:41', 'Cartão recusado', 'Tentativa 1 · charge.payment_failed', 'tl-erro'],
-          ['21:43', 'Pix pago', 'Tentativa 2 · webhook charge.paid recebido', 'tl-ok'],
+          ['21:41', 'Cartão recusado', 'Tentativa 1 · pagamento recusado pelo Mercado Pago', 'tl-erro'],
+          ['21:43', 'Pix pago', 'Tentativa 2 · notificação do Mercado Pago: aprovado', 'tl-ok'],
           ['—', 'Aguardando retirada', 'QR Code válido até 02:00', ''],
         ] },
-      { estab: 'Bar Estação', evento: 'Sábado Estação', data: '12 set 2026', status: 'collected', total: 30, estornado: 0, metodo: 'Cartão',
+      { estab: 'Bar Estação', evento: 'Sábado Estação', data: '12 set 2026', status: 'collected', total: 30, metodo: 'Cartão',
         itens: [{ q: 2, n: 'Chopp 300ml', v: 30 }],
         linha: [
           ['23:05', 'Pedido criado', 'Aguardando pagamento', ''],
-          ['23:05', 'Cartão aprovado', 'Webhook charge.paid recebido', 'tl-ok'],
+          ['23:05', 'Cartão aprovado', 'Notificação do Mercado Pago: aprovado', 'tl-ok'],
           ['23:18', 'QR Code lido por Rafael Costa', 'Bar Externo', ''],
           ['23:19', 'Entrega confirmada', 'QR Code invalidado', 'tl-ok'],
         ] },
     ],
     'PX1-447': [{
-      estab: 'Casa Aurora', evento: 'Sexta Aurora', data: 'hoje', status: 'expired', total: 15, estornado: 0, metodo: 'Pix',
+      estab: 'Casa Aurora', evento: 'Sexta Aurora', data: 'hoje', status: 'expired', total: 15, metodo: 'Pix',
       itens: [{ q: 3, n: 'Água Mineral 500ml', v: 15 }],
       linha: [
         ['20:52', 'Pedido criado', 'Aguardando pagamento', ''],
@@ -655,9 +653,9 @@
           <div class="pedido-grid">
             <div>
               <div class="secao-titulo" style="margin-bottom:8px;">Itens</div>
-              ${p.itens.map(i => `<div class="item-linha ${i.est ? 'estornado' : ''}"><span>${i.q}x ${i.n}</span><span>${i.est ? 'estornado' : fmt(i.v)}</span></div>`).join('')}
+              ${p.itens.map(i => `<div class="item-linha ${i.naoEntregue ? 'nao-entregue' : ''}"><span>${i.q}x ${i.n}</span><span>${i.naoEntregue ? 'não entregue (acabou)' : fmt(i.v)}</span></div>`).join('')}
               <div class="item-linha" style="font-weight:700;"><span>Total pago (${p.metodo})</span><span>${fmt(p.total)}</span></div>
-              ${p.estornado ? `<div class="item-linha" style="color:var(--erro);"><span>Devolvido ao cliente</span><span>− ${fmt(p.estornado)}</span></div>` : ''}
+              ${p.itens.some(i => i.naoEntregue) ? `<div class="item-linha" style="color:var(--cinza-sub);font-size:12px;"><span>Troca ou devolução combinada entre o estabelecimento e o cliente, fora da plataforma</span></div>` : ''}
             </div>
             <div>
               <div class="secao-titulo" style="margin-bottom:12px;">Histórico</div>
@@ -733,13 +731,13 @@
           <div class="check"><span class="check-icone">${c.status === 'rejected' ? '⚠️' : '✅'}</span>
             <div>${docNome} com dígitos verificadores válidos
             ${c.status === 'rejected' ? '<div class="check-sub">Sequência repetida: documento provavelmente falso.</div>' : ''}</div></div>
-          <div class="check"><span class="check-icone">${c.recebedor ? '✅' : '—'}</span>
-            <div>${c.recebedor ? `Recebedor criado no Pagar.me <div class="check-sub">${c.recebedor} · dados bancários ficam só no Pagar.me</div>` : 'Recebedor não criado'}</div></div>
+          <div class="check"><span class="check-icone">${c.contaMp ? '✅' : '⏳'}</span>
+            <div>${c.contaMp ? `Conta Mercado Pago conectada <div class="check-sub">Conta ${c.contaMp} · as vendas caem direto nela</div>` : `Conta Mercado Pago ainda não conectada <div class="check-sub">Sem ela, o estabelecimento não publica eventos, mesmo aprovado</div>`}</div></div>
           ${c.status === 'pending' ? `<div class="check"><span class="check-icone">🔎</span>
             <div>Conferir manualmente a situação cadastral do ${docNome}
             <div class="check-sub">${c.tipo === 'cnpj' ? 'Empresa ativa e com atividade compatível (bar, casa de show, eventos)' : 'Nome e CPF regulares, e presença do produtor em redes ou eventos'}</div></div></div>` : ''}
         </div>
-        ${c.status === 'pending' ? '<div class="info-box">Ao aprovar, o estabelecimento passa a <strong>publicar eventos</strong> e recebe o <strong>link e o QR Code fixo</strong>. O endereço do link fica travado.</div>' : ''}
+        ${c.status === 'pending' ? '<div class="info-box">Ao aprovar, o estabelecimento passa a <strong>publicar eventos</strong> e recebe o <strong>link e o QR Code fixo</strong>. O endereço do link fica travado. Para publicar, a conta Mercado Pago também precisa estar conectada.</div>' : ''}
         <div class="acoes">${acoes}</div>
       </div>`;
   }

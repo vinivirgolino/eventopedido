@@ -58,7 +58,7 @@ Os principais problemas identificados são:
 
 A solução consiste em uma plataforma digital que elimina a fila no caixa ao permitir que o consumidor realize todo o processo de compra pelo próprio celular, dentro do evento, sem instalar nenhum aplicativo. O ponto de entrada é um QR Code fixo do estabelecimento — impresso em banners, totens e pulseiras — que o consumidor escaneia uma única vez para acessar a plataforma.
 
-Ao escanear o QR Code, o consumidor é direcionado para uma tela que exibe os eventos do estabelecimento que estão acontecendo naquele momento e os que começam em breve. Com um único toque no evento desejado, acessa o cardápio, que exibe o nome do evento no topo durante toda a compra. A partir daí, escolhe os itens, informa as quantidades e realiza o pagamento via Pix ou cartão de crédito. Assim que o Pagar.me confirma o pagamento, a tela exibe o comprovante com um QR Code único gerado para aquele pedido. Para retirar o produto, basta se dirigir ao balcão e apresentar esse QR Code ao operador.
+Ao escanear o QR Code, o consumidor é direcionado para uma tela que exibe os eventos do estabelecimento que estão acontecendo naquele momento e os que começam em breve. Com um único toque no evento desejado, acessa o cardápio, que exibe o nome do evento no topo durante toda a compra. A partir daí, escolhe os itens, informa as quantidades e realiza o pagamento via Pix ou cartão de crédito. Assim que o Mercado Pago confirma o pagamento, a tela exibe o comprovante com um QR Code único gerado para aquele pedido. Para retirar o produto, basta se dirigir ao balcão e apresentar esse QR Code ao operador.
 
 Do lado do operador, a operação é igualmente simples. Ele acessa um aplicativo nativo instalado no celular do bar, abre a câmera pelo próprio app, escaneia o QR Code do consumidor e o pedido aparece instantaneamente na tela com os itens e quantidades. No momento da leitura, o pedido fica reservado para aquele operador, o que impede que o mesmo QR Code seja atendido em outro balcão. O operador entrega os itens e confirma a entrega no aplicativo; só então o QR Code é invalidado definitivamente e o pedido é encerrado.
 
@@ -84,15 +84,15 @@ A plataforma foi projetada para atender quatro perfis de usuário distintos, cad
 
 ## 4.1 Administrador
 
-O administrador é o próprio desenvolvedor e gestor da plataforma. Possui acesso irrestrito a todos os dados e funcionalidades do sistema. É responsável por aprovar o cadastro de novos estabelecimentos, monitorar a saúde operacional da plataforma, gerenciar a infraestrutura técnica e resolver eventuais inconsistências nos dados. O administrador não interage com os eventos diretamente, mas tem visibilidade total sobre todos os estabelecimentos, eventos, pedidos e operadores cadastrados na plataforma. O perfil é identificado por uma marcação no próprio usuário do Supabase Auth, que só pode ser alterada pelo servidor. O acesso ocorre por um painel web com quatro áreas: visão geral do dia, com os eventos acontecendo e o movimento da plataforma; faturamento mensal, com a quantidade de vendas, o valor transacionado, os estornos e a receita da plataforma, no total e por estabelecimento; busca de pedido pelo código, com os itens, as tentativas de pagamento, os estornos e o histórico de atendimento, para dar suporte aos estabelecimentos; e análise de cadastros, com as ações de aprovar ou rejeitar.
+O administrador é o próprio desenvolvedor e gestor da plataforma. Possui acesso irrestrito a todos os dados e funcionalidades do sistema. É responsável por aprovar o cadastro de novos estabelecimentos, monitorar a saúde operacional da plataforma, gerenciar a infraestrutura técnica e resolver eventuais inconsistências nos dados. O administrador não interage com os eventos diretamente, mas tem visibilidade total sobre todos os estabelecimentos, eventos, pedidos e operadores cadastrados na plataforma. O perfil é identificado por uma marcação no próprio usuário do Supabase Auth, que só pode ser alterada pelo servidor. O acesso ocorre por um painel web com quatro áreas: visão geral do dia, com os eventos acontecendo e o movimento da plataforma; faturamento mensal, com a quantidade de vendas, o valor transacionado e a receita da plataforma, no total e por estabelecimento; busca de pedido pelo código, com os itens, as tentativas de pagamento e o histórico de atendimento, para dar suporte aos estabelecimentos; e análise de cadastros, com as ações de aprovar ou rejeitar.
 
 ## 4.2 Estabelecimento
 
-O estabelecimento representa a casa de show, o bar, o produtor cultural ou qualquer gestor de espaço de entretenimento que utiliza a plataforma para gerenciar a venda de consumação em seus eventos. Esse perfil concentra todas as responsabilidades de configuração e acompanhamento: cadastrar e publicar eventos, criar cardápios reutilizáveis com itens, preços e categorias, gerenciar os operadores de bar e acompanhar em tempo real os pedidos realizados e o faturamento acumulado. O cadastro exige CPF ou CNPJ, o que permite que produtores culturais pessoa física também utilizem a plataforma, e o acesso ao painel web é realizado com e-mail e senha.
+O estabelecimento representa a casa de show, o bar, o produtor cultural ou qualquer gestor de espaço de entretenimento que utiliza a plataforma para gerenciar a venda de consumação em seus eventos. Esse perfil concentra todas as responsabilidades de configuração e acompanhamento: cadastrar e publicar eventos, criar cardápios reutilizáveis com itens, preços e categorias, gerenciar os operadores de bar e acompanhar em tempo real os pedidos realizados e o faturamento acumulado. O cadastro exige CPF ou CNPJ, o que permite que produtores culturais pessoa física também utilizem a plataforma, e a conexão de uma conta Mercado Pago, onde o estabelecimento recebe as vendas. O acesso ao painel web é realizado com e-mail e senha.
 
 ## 4.3 Operador de Bar
 
-O operador de bar é o funcionário responsável por um balcão de atendimento durante o evento. Seu papel na plataforma é exclusivamente operacional: atender os pedidos, confirmar a entrega e, quando um item acabar, registrar o estorno correspondente. Para acessar o sistema, o operador utiliza um aplicativo nativo instalado no celular do bar e digita um código de acesso individual de seis caracteres, gerado pelo estabelecimento especificamente para aquele evento. Cada operador possui seu próprio código, o que permite ao estabelecimento rastrear individualmente a atuação de cada funcionário e revogar acessos de forma pontual a qualquer momento. O cadastro do operador pode incluir o nome do balcão em que ele atua, utilizado apenas como informação no painel e nas mensagens do aplicativo. O código expira automaticamente ao término do evento, eliminando a necessidade de gerenciamento manual de acessos após o fim da operação.
+O operador de bar é o funcionário responsável por um balcão de atendimento durante o evento. Seu papel na plataforma é exclusivamente operacional: atender os pedidos e confirmar a entrega, indicando os itens que acabaram, quando for o caso. Para acessar o sistema, o operador utiliza um aplicativo nativo instalado no celular do bar e digita um código de acesso individual de seis caracteres, gerado pelo estabelecimento especificamente para aquele evento. Cada operador possui seu próprio código, o que permite ao estabelecimento rastrear individualmente a atuação de cada funcionário e revogar acessos de forma pontual a qualquer momento. O cadastro do operador pode incluir o nome do balcão em que ele atua, utilizado apenas como informação no painel e nas mensagens do aplicativo. O código expira automaticamente ao término do evento, eliminando a necessidade de gerenciamento manual de acessos após o fim da operação.
 
 ## 4.4 Cliente
 
@@ -121,13 +121,13 @@ O fluxo do cliente foi desenhado para ser o mais direto e intuitivo possível, e
 
 - Toca no evento desejado; o toque já confirma a escolha e abre o cardápio.
 
-- Visualiza o cardápio do evento, organizado por categorias, com nome, emoji e preço de cada item. Itens esgotados aparecem acinzentados, com o selo "Esgotado", e não podem ser adicionados.
+- Visualiza o cardápio do evento, organizado por categorias, com nome, emoji e preço de cada item. Itens esgotados continuam visíveis no cardápio, acinzentados e com o selo "Esgotado" em destaque, mas não podem ser adicionados ao pedido.
 
 - Seleciona os itens desejados e define as quantidades.
 
 - Avança para a tela de pagamento, onde confirma o resumo do pedido e escolhe a forma de pagamento: Pix ou cartão de crédito.
 
-- No Pix, recebe o QR Code e o código copia e cola, com prazo de 15 minutos para pagar; a tela aguarda a confirmação e se atualiza sozinha. No cartão, preenche os dados em um formulário seguro; se o cartão for recusado, pode tentar novamente ou trocar para Pix sem refazer o pedido. Também é possível trocar do Pix para o cartão: nesse caso, o Pix gerado é cancelado e deixa de poder ser pago.
+- No Pix, recebe o QR Code e o código copia e cola, com prazo de 15 minutos para pagar; a tela aguarda a confirmação e se atualiza sozinha. No cartão, preenche os dados no formulário seguro do Mercado Pago; se o cartão for recusado, pode tentar novamente ou trocar para Pix sem refazer o pedido. Também é possível trocar do Pix para o cartão: nesse caso, o Pix gerado é cancelado e deixa de poder ser pago.
 
 - Com o pagamento confirmado, recebe na tela o comprovante do pedido, contendo o QR Code único, a lista de itens, o valor total, o horário da compra e o horário limite para retirada, que é o fim do evento.
 
@@ -141,7 +141,7 @@ O operador de bar interage com a plataforma exclusivamente durante o evento, por
 
 - Recebe o código de acesso individual enviado pelo estabelecimento antes do início do evento, normalmente por WhatsApp.
 
-- Abre o aplicativo nativo no celular do bar e insere o código de seis caracteres. Após cinco tentativas incorretas, novas tentativas vindas da mesma conexão (endereço IP) ficam bloqueadas por alguns minutos.
+- Abre o aplicativo nativo no celular do bar e insere o código de seis caracteres. Após cinco tentativas incorretas, novas tentativas vindas do mesmo endereço de rede ficam bloqueadas por alguns minutos.
 
 - Já autenticado, acessa a tela principal do app, que exibe o botão de escaneamento de pedidos e a lista de pedidos entregues por ele.
 
@@ -153,9 +153,9 @@ O operador de bar interage com a plataforma exclusivamente durante o evento, por
 
 - Entrega os itens ao consumidor e pressiona "Confirmar entrega". O pedido é encerrado, o QR Code é invalidado e o aplicativo libera uma nova leitura.
 
-- Se algum item tiver acabado, marca o item como esgotado: o valor correspondente é estornado ao consumidor, o item deixa de ser vendido no cardápio do evento e o operador entrega o restante do pedido. Se o consumidor não quiser mais nada, o operador pode estornar o pedido inteiro.
+- Se algum item tiver acabado, toca em "Acabou" ao lado do item. Ao confirmar a entrega, esse item fica registrado no pedido como não entregue e passa a aparecer como esgotado no cardápio do evento, e o aplicativo lembra o operador de combinar com o consumidor uma troca ou a devolução do valor, que é feita pelo próprio estabelecimento, fora da plataforma.
 
-- Se o atendimento precisar ser interrompido sem falta de produto, por exemplo porque o consumidor se afastou ou o QR Code foi lido por engano, pressiona "Cancelar atendimento": o pedido volta a ficar disponível para retirada, sem estorno.
+- Se o atendimento precisar ser interrompido, por exemplo porque o consumidor se afastou ou o QR Code foi lido por engano, pressiona "Cancelar atendimento": o pedido volta a ficar disponível para retirada.
 
 - Se o aplicativo for fechado ou o celular travar durante um atendimento, ao reabrir o app o operador é levado de volta ao pedido que estava em aberto.
 
@@ -163,9 +163,9 @@ O operador de bar interage com a plataforma exclusivamente durante o evento, por
 
 O estabelecimento interage com a plataforma principalmente na fase de configuração dos eventos e no acompanhamento da operação em tempo real:
 
-- Realiza o cadastro na plataforma informando nome, e-mail, senha, CPF ou CNPJ, o identificador do link público (por exemplo, bar-do-ze) e os dados bancários. Os dados bancários são enviados diretamente ao Pagar.me para criar a conta de recebedor e não ficam armazenados na plataforma.
+- Realiza o cadastro na plataforma informando nome, e-mail, senha, CPF ou CNPJ e o identificador do link público (por exemplo, bar-do-ze). Em seguida, conecta a conta Mercado Pago do estabelecimento pelo botão "Conectar Mercado Pago": faz login no próprio Mercado Pago e autoriza a plataforma a criar cobranças em seu nome. A senha do Mercado Pago nunca passa pela plataforma, e nenhum dado bancário é armazenado.
 
-- Enquanto aguarda a aprovação do administrador, já pode acessar o painel e preparar cardápios, eventos e operadores, mas não pode publicar eventos.
+- Enquanto aguarda a aprovação do administrador, já pode acessar o painel e preparar cardápios, eventos e operadores, mas só pode publicar eventos depois de aprovado e com a conta Mercado Pago conectada.
 
 - Após a aprovação, recebe o link e o QR Code fixo do estabelecimento, que serão utilizados em todos os eventos futuros sem necessidade de substituição. A partir desse momento, o identificador do link não pode mais ser alterado pelo estabelecimento.
 
@@ -179,7 +179,7 @@ O estabelecimento interage com a plataforma principalmente na fase de configura�
 
 - Durante o evento, acompanha em tempo real pelo painel os pedidos realizados, o faturamento acumulado, os itens mais vendidos e o status de cada pedido, e pode marcar itens como esgotados ou disponíveis novamente.
 
-- Após o evento, consulta os estornos realizados, com o operador responsável, os itens e o motivo de cada um.
+- Após o evento, consulta os pedidos realizados, incluindo os itens marcados pelos operadores como não entregues.
 
 ## 5.4 Canais de Acesso do Consumidor
 
@@ -209,13 +209,15 @@ A segurança do sistema foi pensada desde o início do projeto, considerando que
 
 - Feedback visual ao consumidor: o comprovante na tela do consumidor é atualizado em tempo real para exibir o status do pedido: aguardando retirada, em atendimento e retirado. A atualização é entregue apenas ao celular que fez o pedido, graças à sessão anônima e às políticas de segurança por linha do banco de dados.
 
-- Estorno rastreável: quando um item acaba, o operador registra o estorno no próprio aplicativo. O valor sempre retorna ao meio de pagamento original do consumidor, nunca ao operador, e cada estorno é registrado com o identificador do operador, os itens, o valor e o motivo, disponível para auditoria no painel do estabelecimento.
+- Itens não entregues registrados: quando um item acaba, o operador o indica na confirmação da entrega. O pedido guarda quais itens não foram entregues, com o operador e o horário, o que permite ao estabelecimento comprovar o ocorrido em caso de reclamação ou contestação da compra. A devolução do valor, quando houver, é combinada diretamente entre o estabelecimento e o consumidor.
 
 - Rastreabilidade por operador: cada atendimento é registrado com o identificador do operador que realizou a leitura, por meio do campo operator_id na tabela orders, junto com os horários de leitura e de entrega. Isso permite auditoria completa de todas as entregas realizadas durante o evento.
 
-- Código de acesso do operador protegido: o código possui seis caracteres alfanuméricos, sem caracteres que se confundem, como 0 e O, o que resulta em cerca de um bilhão de combinações. O backend limita as tentativas de login a cinco por endereço IP, com bloqueio temporário, e armazena apenas o hash do código, nunca o código em texto puro. No MVP, a contagem de tentativas fica na memória do servidor, o que funciona com a instância única do backend na Railway. Essa é uma limitação conhecida: quando o backend passar a rodar em mais de uma instância, a contagem deve ir para o banco de dados ou para um cache compartilhado.
+- Código de acesso do operador protegido: o código possui seis caracteres alfanuméricos, sem caracteres que se confundem, como 0 e O, o que resulta em cerca de um bilhão de combinações. O backend limita as tentativas de login por endereço de rede e armazena apenas o hash do código, nunca o código em texto puro. No MVP, com uma única instância do backend, o controle de tentativas fica em memória; com várias instâncias, ele deve passar para o banco ou para um cache compartilhado.
 
 - QR Code do comprovante válido em todos os balcões: o QR Code gerado no comprovante do consumidor é reconhecido por qualquer operador do mesmo evento, independentemente do balcão em que está alocado.
+
+- Tokens do Mercado Pago protegidos: os tokens de acesso que permitem cobrar em nome de cada estabelecimento são armazenados criptografados no banco de dados, com uma chave mantida apenas nas variáveis de ambiente do backend, e nunca são enviados aos aplicativos.
 
 # 7 ARQUITETURA TÉCNICA
 
@@ -225,22 +227,22 @@ A arquitetura técnica da plataforma foi definida com dois critérios principais
 
 A stack foi selecionada com base em três critérios: maturidade e adoção no mercado, familiaridade do desenvolvedor com as tecnologias e coerência entre as camadas da aplicação. Todas as escolhas seguem padrões amplamente utilizados em produtos digitais profissionais:
 
-| **Camada**                | **Tecnologia**                 | **Função**                                                                                       |
-|---------------------------|--------------------------------|--------------------------------------------------------------------------------------------------|
-| Frontend cliente          | Flutter Web                    | Tela de seleção de evento, cardápio, pagamento e comprovante                                     |
-| Frontend estabelecimento  | Flutter Web                    | Painel de gerenciamento de eventos, cardápios, operadores e pedidos                              |
-| Frontend administrador    | Flutter Web                    | Visão geral, faturamento mensal, busca de pedidos e aprovação de cadastros                       |
-| App operador              | Flutter (nativo Android e iOS) | Scanner de QR Code, atendimento, confirmação de entrega e estorno de itens                       |
-| Backend                   | Node.js + TypeScript + Express | Regras de negócio, validação de pedidos, autenticação dos operadores e integração com o Pagar.me |
-| Acesso a dados            | Prisma                         | Consultas tipadas e migrations do banco de dados                                                 |
-| Validação                 | Zod                            | Validação dos dados de entrada de todas as rotas da API                                          |
-| Banco de dados            | Supabase (PostgreSQL)          | Banco de dados relacional, armazenamento, consultas e relatórios                                 |
-| Hosting                   | Railway                        | Hospedagem do backend Node.js                                                                    |
-| Autenticação              | Supabase Auth                  | Autenticação do estabelecimento e do administrador e sessões anônimas dos consumidores           |
-| Comunicação em tempo real | Supabase Realtime              | Pedidos ao vivo no painel do estabelecimento e atualização do comprovante do consumidor          |
-| Pagamento                 | Pagar.me                       | Processamento de pagamentos, split automático e estornos                                         |
-| QR Code (geração)         | qr_flutter                     | Geração do QR Code no comprovante do consumidor                                                  |
-| QR Code (leitura)         | mobile_scanner                 | Leitura do QR Code pelo app do operador                                                          |
+| **Camada**                | **Tecnologia**                 | **Função**                                                                                           |
+|---------------------------|--------------------------------|------------------------------------------------------------------------------------------------------|
+| Frontend cliente          | Flutter Web                    | Tela de seleção de evento, cardápio, pagamento e comprovante                                         |
+| Frontend estabelecimento  | Flutter Web                    | Painel de gerenciamento de eventos, cardápios, operadores e pedidos                                  |
+| Frontend administrador    | Flutter Web                    | Visão geral, faturamento mensal, busca de pedidos e aprovação de cadastros                           |
+| App operador              | Flutter (nativo Android e iOS) | Scanner de QR Code, atendimento e confirmação de entrega                                             |
+| Backend                   | Node.js + TypeScript + Express | Regras de negócio, validação de pedidos, autenticação dos operadores e integração com o Mercado Pago |
+| Acesso a dados            | Prisma                         | Consultas tipadas e migrations do banco de dados                                                     |
+| Validação                 | Zod                            | Validação dos dados de entrada de todas as rotas da API                                              |
+| Banco de dados            | Supabase (PostgreSQL)          | Banco de dados relacional, armazenamento, consultas e relatórios                                     |
+| Hosting                   | Railway                        | Hospedagem do backend Node.js                                                                        |
+| Autenticação              | Supabase Auth                  | Autenticação do estabelecimento e do administrador e sessões anônimas dos consumidores               |
+| Comunicação em tempo real | Supabase Realtime              | Pedidos ao vivo no painel do estabelecimento e atualização do comprovante do consumidor              |
+| Pagamento                 | Mercado Pago                   | Processamento de Pix e cartão, conexão das contas dos estabelecimentos (OAuth) e split automático    |
+| QR Code (geração)         | qr_flutter                     | Geração do QR Code no comprovante do consumidor                                                      |
+| QR Code (leitura)         | mobile_scanner                 | Leitura do QR Code pelo app do operador                                                              |
 
 ## 7.2 Fases da Infraestrutura
 
@@ -265,29 +267,33 @@ A autenticação combina o Supabase Auth, responsável pelo gerenciamento de usu
 
 - Cliente: não cria conta nem faz login. No primeiro acesso, o aplicativo cria uma sessão anônima no Supabase Auth de forma invisível, sem nenhuma tela ou dado pessoal. Os pedidos ficam vinculados a essa sessão, o que permite exibir os avisos de pedidos em aberto e atualizar o comprovante em tempo real apenas para o celular que fez o pedido. A criação dessas sessões é protegida por um CAPTCHA invisível, e uma rotina diária exclui as sessões sem pedidos em aberto e sem atividade há mais de 24 horas, desvinculando-as dos pedidos antes da exclusão.
 
-Todas as operações que gravam dados, como criar eventos, cardápios e pedidos, iniciar pagamentos, ler QR Codes e registrar estornos, passam pelo backend, que concentra as regras de negócio e acessa o banco por meio do Prisma. Os aplicativos acessam o Supabase diretamente em apenas dois casos: a autenticação pelo Supabase Auth e o recebimento de atualizações em tempo real pelo Supabase Realtime. As políticas de segurança por linha (RLS) ficam ativas em todas as tabelas e liberam somente a leitura necessária para o tempo real: o estabelecimento lê os pedidos dos próprios eventos e cada sessão anônima lê apenas os próprios pedidos.
+Todas as operações que gravam dados, como criar eventos, cardápios e pedidos, iniciar pagamentos e ler QR Codes, passam pelo backend, que concentra as regras de negócio e acessa o banco por meio do Prisma. Os aplicativos acessam o Supabase diretamente em apenas dois casos: a autenticação pelo Supabase Auth e o recebimento de atualizações em tempo real pelo Supabase Realtime. A Data API do Supabase fica desativada. As políticas de segurança por linha (RLS) ficam ativas em todas as tabelas e liberam somente a leitura necessária para o tempo real: o estabelecimento lê os pedidos dos próprios eventos e cada sessão anônima lê apenas os próprios pedidos. Como as sessões anônimas usam o mesmo papel dos usuários autenticados no Supabase, toda política confere a posse do dado pelo identificador do usuário, e não apenas o fato de ele estar autenticado.
 
 ## 7.4 Fluxo de Pagamento
 
-O processamento de pagamentos é realizado pelo Pagar.me, gateway escolhido por sua robustez, suporte nativo ao Pix e pela funcionalidade de split automático, que distribui os valores entre os recebedores sem necessidade de nenhuma intervenção manual. Como a confirmação do Pix é assíncrona, o pedido é criado antes do pagamento e só libera o QR Code de retirada depois que o backend recebe a confirmação oficial do Pagar.me. O fluxo completo ocorre da seguinte forma:
+O processamento de pagamentos é realizado pelo Mercado Pago, escolhido pelas taxas competitivas no Pix e no cartão, adequadas ao ticket baixo dos pedidos em eventos, pelo split de pagamentos e pelo fato de muitos estabelecimentos já possuírem conta Mercado Pago por usarem suas maquininhas. Cada estabelecimento conecta a própria conta Mercado Pago à plataforma por OAuth, e cada pagamento é criado em nome do estabelecimento, de modo que o valor da venda cai diretamente na conta dele. Como a confirmação do Pix é assíncrona, o pedido é criado antes do pagamento e só libera o QR Code de retirada depois que o backend recebe a confirmação oficial do Mercado Pago. O fluxo completo ocorre da seguinte forma:
+
+- O estabelecimento conecta sua conta Mercado Pago pelo painel. O backend guarda, criptografados, o token de acesso e o token de renovação, e uma rotina renova o token antes que ele expire. Se a renovação falhar, o estabelecimento é avisado no painel para conectar a conta novamente.
 
 - O consumidor confirma o carrinho e o backend cria o pedido com o status awaiting_payment, calculando o valor total a partir dos preços do cardápio, e não de valores enviados pelo aplicativo.
 
-- O consumidor escolhe a forma de pagamento e o backend cria uma tentativa de pagamento na tabela payments, acionando a API do Pagar.me com as regras de split. No cartão, os dados são tokenizados diretamente pelo Pagar.me no aplicativo, e o número do cartão nunca passa pelo backend nem é armazenado. No Pix, a cobrança é criada no Pagar.me com expiração no mesmo horário limite do pedido, 15 minutos após a sua criação, de modo que o próprio Pagar.me recusa o pagamento depois do prazo.
+- O consumidor escolhe a forma de pagamento e o backend cria uma tentativa na tabela payments, acionando a API do Mercado Pago com o token do estabelecimento e com a comissão da plataforma no campo application_fee, calculada pelo backend como 5% do valor total do pedido. No cartão, os dados são tokenizados pelo formulário seguro do Mercado Pago no aplicativo, e o número do cartão nunca passa pelo backend nem é armazenado.
 
-- Cada pedido tem no máximo uma tentativa pendente por vez: enquanto houver uma tentativa com status pending, o backend não cria outra. Se o consumidor quiser trocar do Pix para o cartão, o backend primeiro cancela a cobrança Pix pendente no Pagar.me, marca a tentativa como cancelled e só então cria a tentativa no cartão. Se o cancelamento não for possível porque o Pix acabou de ser pago, a troca é recusada e o pedido segue o fluxo normal de pagamento aprovado.
+- Só pode existir uma tentativa pendente por pedido. Se o consumidor quiser trocar do Pix para o cartão, o backend cancela o Pix pendente no Mercado Pago antes de criar a nova tentativa, o que evita cobrança em duplicidade.
 
-- O Pagar.me informa o resultado ao backend por webhook. Cada aviso recebido é registrado na tabela payment_webhooks; se o mesmo aviso chegar mais de uma vez, ele é identificado e não é processado novamente, o que torna a operação idempotente.
+- Se o cancelamento do Pix não for possível porque ele acabou de ser pago, a troca para o cartão é recusada e o pedido segue o fluxo normal de pagamento aprovado. Se, mesmo assim, uma segunda tentativa for aprovada para um pedido já pago, ela fica registrada na tabela payments e aparece na busca de pedido do administrador, que orienta o estabelecimento a devolver esse valor ao consumidor pelo próprio Mercado Pago.
 
-- Com o pagamento aprovado, o pedido passa para paid e o QR Code de retirada é exibido na tela do consumidor. A confirmação nunca é aceita com base em informação enviada pelo aplicativo.
+- O Pix é criado no Mercado Pago com validade de 15 minutos, igual ao prazo do pedido. Se nenhuma tentativa for aprovada nesse prazo, o pedido passa para expired e nenhum valor é cobrado.
 
-- Se uma tentativa falhar, como um cartão recusado, apenas a tentativa fica com o status failed. O pedido continua aguardando pagamento e o consumidor pode tentar novamente, com outro cartão ou com Pix. Se nenhuma tentativa for aprovada em 15 minutos, o pedido passa para expired e nenhum valor é cobrado.
+- O Mercado Pago informa o resultado ao backend por notificação (webhook). O backend confere a assinatura da notificação, consulta o pagamento na API do Mercado Pago para confirmar o status e registra cada aviso na tabela payment_webhooks; avisos repetidos são identificados e não são processados novamente, o que torna a operação idempotente.
 
-- Estorno automático do sistema: apesar das proteções acima, o backend trata dois casos raros sem intervenção manual. Se chegar a confirmação de um pagamento para um pedido que já está expired, o valor integral dessa tentativa é estornado automaticamente, com o motivo late_payment, e o pedido continua expired. Se uma segunda tentativa for aprovada para um pedido que já foi pago, essa segunda tentativa é estornada automaticamente, com o motivo duplicate_payment, e o pedido mantém o status atual. Esses estornos são registrados na tabela refunds sem operador (operator_id vazio), não têm itens em refund_items e não entram em orders.refunded_amount, que soma apenas os estornos de itens do pedido.
+- Com o pagamento aprovado, o pedido passa para paid e o QR Code de retirada é exibido na tela do consumidor. A confirmação nunca é aceita com base em informação enviada pelo aplicativo. Se um pagamento aprovado chegar para um pedido já expirado, o pedido é reativado como paid enquanto o evento estiver em andamento, e o consumidor recebe o QR Code normalmente.
 
-- No split, a plataforma recebe 5% do valor total do pedido. O estabelecimento recebe os 95% restantes, descontada a taxa do Pagar.me, que varia conforme o meio de pagamento e o contrato. Eventuais chargebacks também ficam a cargo do estabelecimento.
+- Se uma tentativa falhar, como um cartão recusado, apenas a tentativa fica com o status failed. O pedido continua aguardando pagamento e o consumidor pode tentar novamente, com outro cartão ou com Pix.
 
-- Quando um item acaba, o operador registra um estorno parcial ou total. O backend solicita o estorno ao Pagar.me, que devolve o valor pelo mesmo meio de pagamento, e o split é desfeito na proporção do valor estornado. Conforme a documentação do Pagar.me, a taxa do Pix e as taxas fixas do cartão não são devolvidas no estorno, e esse custo fica com o estabelecimento.
+- No split, o Mercado Pago desconta primeiro a própria taxa da parte do estabelecimento e, em seguida, repassa à plataforma a comissão de 5% sobre o valor total do pedido. O estabelecimento recebe o restante. Eventuais chargebacks também ficam a cargo do estabelecimento.
+
+- O MVP não realiza estornos pela plataforma. Quando um item acaba, o operador o indica na confirmação da entrega, o item fica registrado como não entregue no pedido e a troca ou a devolução do valor é combinada diretamente entre o estabelecimento e o consumidor.
 
 | **Status do pedido** | **Significado**                                               |
 |----------------------|---------------------------------------------------------------|
@@ -295,14 +301,13 @@ O processamento de pagamentos é realizado pelo Pagar.me, gateway escolhido por 
 | paid                 | Pagamento confirmado; QR Code de retirada válido              |
 | in_service           | QR Code lido; pedido reservado para o operador que o escaneou |
 | collected            | Entrega confirmada; QR Code invalidado e pedido encerrado     |
-| refunded             | Pedido estornado integralmente                                |
 | expired              | Nenhum pagamento aprovado dentro do prazo; nada foi cobrado   |
 
-As transições possíveis são: awaiting_payment para paid ou expired; paid para in_service; in_service para collected, refunded ou de volta para paid, quando o atendimento é cancelado. Estornos parciais não alteram o status: o valor devolvido é registrado no campo refunded_amount e na tabela refunds, e o pedido segue para collected com os itens restantes. Os estornos automáticos do sistema (late_payment e duplicate_payment) também não alteram o status do pedido.
+As transições possíveis são: awaiting_payment para paid ou expired; expired para paid, quando um pagamento aprovado chega depois do prazo e o evento ainda está em andamento; paid para in_service; e in_service para collected ou de volta para paid, quando o atendimento é cancelado.
 
 ## 7.5 Rotas da API
 
-A API do backend segue o padrão REST, com todas as rotas sob o prefixo /api/v1, dados em formato JSON e validação dos dados de entrada com Zod. As rotas protegidas recebem o token no cabeçalho Authorization. A coluna Acesso indica quem pode chamar cada rota: Público (sem autenticação), Consumidor (sessão anônima), Operador (token emitido pelo backend), Estabelecimento (Supabase Auth, somente para recursos próprios), Admin (Supabase Auth com marcação de administrador) e Pagar.me (assinatura do webhook verificada).
+A API do backend segue o padrão REST, com todas as rotas sob o prefixo /api/v1, dados em formato JSON e validação dos dados de entrada com Zod. As rotas protegidas recebem o token no cabeçalho Authorization. A coluna Acesso indica quem pode chamar cada rota: Público (sem autenticação), Consumidor (sessão anônima), Operador (token emitido pelo backend), Estabelecimento (Supabase Auth, somente para recursos próprios), Admin (Supabase Auth com marcação de administrador) e Mercado Pago (assinatura da notificação verificada).
 
 ### 7.5.1 Rotas públicas e do consumidor
 
@@ -317,88 +322,93 @@ A API do backend segue o padrão REST, com todas as rotas sob o prefixo /api/v1,
 
 ### 7.5.2 Rotas do operador
 
-| **Método** | **Rota**                          | **Acesso** | **Descrição**                                            |
-|------------|-----------------------------------|------------|----------------------------------------------------------|
-| POST       | /operator/login                   | Público    | Valida o código de acesso e emite o token do operador    |
-| GET        | /operator/me                      | Operador   | Dados do operador e atendimento em aberto, para retomada |
-| POST       | /operator/orders/scan             | Operador   | Lê o QR Code e reserva o pedido (paid para in_service)   |
-| POST       | /operator/orders/:orderId/confirm | Operador   | Confirma a entrega (in_service para collected)           |
-| POST       | /operator/orders/:orderId/release | Operador   | Cancela o atendimento (in_service para paid)             |
-| POST       | /operator/orders/:orderId/refunds | Operador   | Estorna itens esgotados ou o pedido inteiro              |
-| GET        | /operator/orders/delivered        | Operador   | Pedidos entregues pelo operador no evento                |
+| **Método** | **Rota**                          | **Acesso** | **Descrição**                                                                    |
+|------------|-----------------------------------|------------|----------------------------------------------------------------------------------|
+| POST       | /operator/login                   | Público    | Valida o código de acesso e emite o token do operador                            |
+| GET        | /operator/me                      | Operador   | Dados do operador e atendimento em aberto, para retomada                         |
+| POST       | /operator/orders/scan             | Operador   | Lê o QR Code e reserva o pedido (paid para in_service)                           |
+| POST       | /operator/orders/:orderId/confirm | Operador   | Confirma a entrega, informando os itens que acabaram (in_service para collected) |
+| POST       | /operator/orders/:orderId/release | Operador   | Cancela o atendimento (in_service para paid)                                     |
+| GET        | /operator/orders/delivered        | Operador   | Pedidos entregues pelo operador no evento                                        |
 
 ### 7.5.3 Rotas do estabelecimento
 
-| **Método** | **Rota**                                    | **Acesso**      | **Descrição**                                               |
-|------------|---------------------------------------------|-----------------|-------------------------------------------------------------|
-| POST       | /establishments                             | Estabelecimento | Completa o cadastro: nome, slug, CPF/CNPJ e dados bancários |
-| GET        | /establishments/me                          | Estabelecimento | Dados do estabelecimento e status de aprovação              |
-| PATCH      | /establishments/me                          | Estabelecimento | Atualiza dados cadastrais; slug só antes da aprovação       |
-| GET        | /establishments/me/access                   | Estabelecimento | Link e QR Code fixo; disponível após a aprovação            |
-| GET        | /menus                                      | Estabelecimento | Lista os cardápios reutilizáveis                            |
-| POST       | /menus                                      | Estabelecimento | Cria um cardápio                                            |
-| PATCH      | /menus/:menuId                              | Estabelecimento | Renomeia um cardápio                                        |
-| DELETE     | /menus/:menuId                              | Estabelecimento | Exclui um cardápio sem afetar eventos já criados            |
-| POST       | /menus/:menuId/items                        | Estabelecimento | Adiciona item ao cardápio                                   |
-| PATCH      | /menus/:menuId/items/:itemId                | Estabelecimento | Altera item do cardápio                                     |
-| DELETE     | /menus/:menuId/items/:itemId                | Estabelecimento | Remove item do cardápio                                     |
-| GET        | /events                                     | Estabelecimento | Lista os eventos com status calculado                       |
-| POST       | /events                                     | Estabelecimento | Cria evento e copia os itens do cardápio escolhido          |
-| PATCH      | /events/:eventId                            | Estabelecimento | Altera nome e horários do evento                            |
-| POST       | /events/:eventId/publish                    | Estabelecimento | Publica o evento; exige cadastro aprovado                   |
-| POST       | /events/:eventId/menu-items                 | Estabelecimento | Adiciona item apenas a este evento                          |
-| PATCH      | /events/:eventId/menu-items/:itemId         | Estabelecimento | Altera item do evento, inclusive disponível ou esgotado     |
-| DELETE     | /events/:eventId/menu-items/:itemId         | Estabelecimento | Remove item do evento                                       |
-| GET        | /events/:eventId/operators                  | Estabelecimento | Lista os operadores do evento                               |
-| POST       | /events/:eventId/operators                  | Estabelecimento | Cadastra operador e retorna o código uma única vez          |
-| PATCH      | /events/:eventId/operators/:operatorId      | Estabelecimento | Altera balcão ou ativa e desativa o acesso                  |
-| POST       | /events/:eventId/operators/:operatorId/code | Estabelecimento | Gera novo código e invalida o anterior                      |
-| GET        | /events/:eventId/orders                     | Estabelecimento | Pedidos do evento; atualizações chegam pelo Realtime        |
-| GET        | /events/:eventId/dashboard                  | Estabelecimento | Faturamento, pedidos, ticket médio e itens mais vendidos    |
-| GET        | /events/:eventId/refunds                    | Estabelecimento | Estornos do evento, para auditoria                          |
+| **Método** | **Rota**                                    | **Acesso**      | **Descrição**                                                            |
+|------------|---------------------------------------------|-----------------|--------------------------------------------------------------------------|
+| POST       | /establishments                             | Estabelecimento | Completa o cadastro: nome, slug e CPF/CNPJ                               |
+| GET        | /establishments/me                          | Estabelecimento | Dados do estabelecimento e status de aprovação                           |
+| PATCH      | /establishments/me                          | Estabelecimento | Atualiza dados cadastrais; slug só antes da aprovação                    |
+| GET        | /establishments/me/access                   | Estabelecimento | Link e QR Code fixo; disponível após a aprovação                         |
+| GET        | /establishments/me/mercadopago/connect      | Estabelecimento | Gera o link de autorização do Mercado Pago (OAuth)                       |
+| GET        | /oauth/mercadopago/callback                 | Público         | Retorno do Mercado Pago; valida o state assinado e guarda os tokens      |
+| DELETE     | /establishments/me/mercadopago              | Estabelecimento | Desconecta a conta Mercado Pago                                          |
+| GET        | /menus                                      | Estabelecimento | Lista os cardápios reutilizáveis                                         |
+| POST       | /menus                                      | Estabelecimento | Cria um cardápio                                                         |
+| PATCH      | /menus/:menuId                              | Estabelecimento | Renomeia um cardápio                                                     |
+| DELETE     | /menus/:menuId                              | Estabelecimento | Exclui um cardápio sem afetar eventos já criados                         |
+| POST       | /menus/:menuId/items                        | Estabelecimento | Adiciona item ao cardápio                                                |
+| PATCH      | /menus/:menuId/items/:itemId                | Estabelecimento | Altera item do cardápio                                                  |
+| DELETE     | /menus/:menuId/items/:itemId                | Estabelecimento | Remove item do cardápio                                                  |
+| GET        | /events                                     | Estabelecimento | Lista os eventos com status calculado                                    |
+| POST       | /events                                     | Estabelecimento | Cria evento e copia os itens do cardápio escolhido                       |
+| PATCH      | /events/:eventId                            | Estabelecimento | Altera nome e horários do evento                                         |
+| POST       | /events/:eventId/publish                    | Estabelecimento | Publica o evento; exige cadastro aprovado e conta Mercado Pago conectada |
+| POST       | /events/:eventId/menu-items                 | Estabelecimento | Adiciona item apenas a este evento                                       |
+| PATCH      | /events/:eventId/menu-items/:itemId         | Estabelecimento | Altera item do evento, inclusive disponível ou esgotado                  |
+| DELETE     | /events/:eventId/menu-items/:itemId         | Estabelecimento | Remove item do evento                                                    |
+| GET        | /events/:eventId/operators                  | Estabelecimento | Lista os operadores do evento                                            |
+| POST       | /events/:eventId/operators                  | Estabelecimento | Cadastra operador e retorna o código uma única vez                       |
+| PATCH      | /events/:eventId/operators/:operatorId      | Estabelecimento | Altera balcão ou ativa e desativa o acesso                               |
+| POST       | /events/:eventId/operators/:operatorId/code | Estabelecimento | Gera novo código e invalida o anterior                                   |
+| GET        | /events/:eventId/orders                     | Estabelecimento | Pedidos do evento; atualizações chegam pelo Realtime                     |
+| GET        | /events/:eventId/dashboard                  | Estabelecimento | Faturamento, pedidos, ticket médio e itens mais vendidos                 |
 
 ### 7.5.4 Rotas do administrador
 
-| **Método** | **Rota**                          | **Acesso** | **Descrição**                                                                                |
-|------------|-----------------------------------|------------|----------------------------------------------------------------------------------------------|
-| GET        | /admin/overview                   | Admin      | Resumo do dia: estabelecimentos ativos, eventos ao vivo, pedidos e receita                   |
-| GET        | /admin/billing?month=AAAA-MM      | Admin      | Faturamento do mês: vendas, transacionado, estornos e receita, por dia e por estabelecimento |
-| GET        | /admin/orders?code=:orderCode     | Admin      | Busca pedidos pelo código em todos os eventos, com pagamentos, estornos e histórico          |
-| GET        | /admin/establishments             | Admin      | Lista cadastros, com filtro por status de aprovação                                          |
-| POST       | /admin/establishments/:id/approve | Admin      | Aprova o cadastro e libera a publicação de eventos                                           |
-| POST       | /admin/establishments/:id/reject  | Admin      | Rejeita o cadastro                                                                           |
-| PATCH      | /admin/establishments/:id/slug    | Admin      | Altera o slug em caso excepcional                                                            |
+| **Método** | **Rota**                          | **Acesso** | **Descrição**                                                                      |
+|------------|-----------------------------------|------------|------------------------------------------------------------------------------------|
+| GET        | /admin/overview                   | Admin      | Resumo do dia: estabelecimentos ativos, eventos ao vivo, pedidos e receita         |
+| GET        | /admin/billing?month=AAAA-MM      | Admin      | Faturamento do mês: vendas, transacionado e receita, por dia e por estabelecimento |
+| GET        | /admin/orders?code=:orderCode     | Admin      | Busca pedidos pelo código em todos os eventos, com pagamentos e histórico          |
+| GET        | /admin/establishments             | Admin      | Lista cadastros, com filtro por status de aprovação                                |
+| POST       | /admin/establishments/:id/approve | Admin      | Aprova o cadastro e libera a publicação de eventos                                 |
+| POST       | /admin/establishments/:id/reject  | Admin      | Rejeita o cadastro                                                                 |
+| PATCH      | /admin/establishments/:id/slug    | Admin      | Altera o slug em caso excepcional                                                  |
 
 ### 7.5.5 Integrações e sistema
 
-| **Método** | **Rota**          | **Acesso** | **Descrição**                                             |
-|------------|-------------------|------------|-----------------------------------------------------------|
-| POST       | /webhooks/pagarme | Pagar.me   | Recebe avisos de pagamento e estorno de forma idempotente |
-| GET        | /health           | Público    | Verificação de funcionamento do backend                   |
+| **Método** | **Rota**              | **Acesso**   | **Descrição**                                            |
+|------------|-----------------------|--------------|----------------------------------------------------------|
+| POST       | /webhooks/mercadopago | Mercado Pago | Recebe as notificações de pagamento de forma idempotente |
+| GET        | /health               | Público      | Verificação de funcionamento do backend                  |
 
 # 8 DICIONÁRIO DE DADOS
 
 O dicionário de dados descreve a estrutura completa do banco de dados relacional da plataforma, especificando cada tabela, seus campos, tipos de dados, obrigatoriedade e descrição funcional. Toda a nomenclatura segue o padrão universal snake_case em inglês, adotado como padrão profissional em sistemas de banco de dados. Chaves primárias são sempre nomeadas id, chaves estrangeiras seguem o padrão {tabela_singular}\_id, campos booleanos utilizam o prefixo is\_ e campos de data e hora utilizam o sufixo \_at e o tipo TIMESTAMPTZ, que registra o fuso horário. Todas as tabelas possuem os campos created_at e updated_at, exceto payment_webhooks, que é um registro imutável.
 
-O banco de dados é composto por doze tabelas. Um estabelecimento possui cardápios reutilizáveis e múltiplos eventos; cada evento possui uma cópia própria dos itens do cardápio, seus operadores e seus pedidos; cada pedido é composto por um ou mais itens e pode ter várias tentativas de pagamento e estornos. As tabelas de usuários ficam no Supabase Auth (auth.users) e não são gerenciadas pelo Prisma: a ligação com elas é criada por uma migration SQL própria. As políticas de segurança por linha (RLS) ficam ativas em todas as tabelas.
+O banco de dados é composto por dez tabelas. Um estabelecimento possui cardápios reutilizáveis e múltiplos eventos; cada evento possui uma cópia própria dos itens do cardápio, seus operadores e seus pedidos; cada pedido é composto por um ou mais itens e pode ter várias tentativas de pagamento. As tabelas de usuários ficam no Supabase Auth (auth.users) e não são gerenciadas pelo Prisma: a ligação com elas é criada por uma migration SQL própria. As políticas de segurança por linha (RLS) ficam ativas em todas as tabelas.
 
 ## 8.1 Tabela: establishments
 
 Armazena os dados cadastrais de cada estabelecimento registrado na plataforma. É a entidade raiz do sistema, à qual todos os cardápios, eventos e operações estão vinculados. O e-mail e a senha de acesso ficam no Supabase Auth, e não nesta tabela.
 
-| **Campo**            | **Tipo**    | **Obrigatório** | **Descrição**                                                                                                                                                     |
-|----------------------|-------------|-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| id                   | UUID        | Sim             | Identificador único do estabelecimento, gerado automaticamente pelo banco de dados                                                                                |
-| user_id              | UUID        | Sim             | Referência ao usuário do Supabase Auth dono do estabelecimento. Chave estrangeira para auth.users. Deve ser único                                                 |
-| name                 | TEXT        | Sim             | Nome do estabelecimento, conforme registrado para exibição na plataforma                                                                                          |
-| slug                 | TEXT        | Sim             | Identificador público usado no link e no QR Code fixo, com letras minúsculas, números e hífen. Único; não pode ser alterado pelo estabelecimento após a aprovação |
-| document_type        | TEXT        | Sim             | Tipo do documento informado no cadastro: cpf ou cnpj                                                                                                              |
-| document             | TEXT        | Sim             | CPF ou CNPJ, somente números, com dígitos verificadores validados no cadastro. Deve ser único no sistema                                                          |
-| approval_status      | TEXT        | Sim             | Situação do cadastro: pending (aguardando), approved (aprovado) ou rejected (rejeitado)                                                                           |
-| approved_at          | TIMESTAMPTZ | Não             | Data e hora da aprovação pelo administrador                                                                                                                       |
-| pagarme_recipient_id | TEXT        | Não             | Identificador do recebedor no Pagar.me, usado no split. Os dados bancários ficam apenas no Pagar.me                                                               |
-| created_at           | TIMESTAMPTZ | Sim             | Data e hora de cadastro do estabelecimento na plataforma                                                                                                          |
-| updated_at           | TIMESTAMPTZ | Sim             | Data e hora da última alteração do registro                                                                                                                       |
+| **Campo**           | **Tipo**    | **Obrigatório** | **Descrição**                                                                                                                                                     |
+|---------------------|-------------|-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| id                  | UUID        | Sim             | Identificador único do estabelecimento, gerado automaticamente pelo banco de dados                                                                                |
+| user_id             | UUID        | Sim             | Referência ao usuário do Supabase Auth dono do estabelecimento. Chave estrangeira para auth.users. Deve ser único                                                 |
+| name                | TEXT        | Sim             | Nome do estabelecimento, conforme registrado para exibição na plataforma                                                                                          |
+| slug                | TEXT        | Sim             | Identificador público usado no link e no QR Code fixo, com letras minúsculas, números e hífen. Único; não pode ser alterado pelo estabelecimento após a aprovação |
+| document_type       | TEXT        | Sim             | Tipo do documento informado no cadastro: cpf ou cnpj                                                                                                              |
+| document            | TEXT        | Sim             | CPF ou CNPJ, somente números, com dígitos verificadores validados no cadastro. Deve ser único no sistema                                                          |
+| approval_status     | TEXT        | Sim             | Situação do cadastro: pending (aguardando), approved (aprovado) ou rejected (rejeitado)                                                                           |
+| approved_at         | TIMESTAMPTZ | Não             | Data e hora da aprovação pelo administrador                                                                                                                       |
+| mp_user_id          | TEXT        | Não             | Identificador da conta Mercado Pago conectada pelo estabelecimento (user_id retornado no OAuth). Único                                                            |
+| mp_access_token     | TEXT        | Não             | Token de acesso para criar cobranças em nome do estabelecimento. Armazenado criptografado                                                                         |
+| mp_refresh_token    | TEXT        | Não             | Token usado para renovar o token de acesso. Armazenado criptografado e substituído a cada renovação                                                               |
+| mp_token_expires_at | TIMESTAMPTZ | Não             | Data e hora de expiração do token de acesso, usada pela rotina de renovação                                                                                       |
+| mp_connected_at     | TIMESTAMPTZ | Não             | Data e hora em que a conta Mercado Pago foi conectada. Vazio enquanto não houver conta conectada                                                                  |
+| created_at          | TIMESTAMPTZ | Sim             | Data e hora de cadastro do estabelecimento na plataforma                                                                                                          |
+| updated_at          | TIMESTAMPTZ | Sim             | Data e hora da última alteração do registro                                                                                                                       |
 
 ## 8.2 Tabela: menus
 
@@ -477,103 +487,72 @@ Armazena os operadores de bar cadastrados para cada evento. Cada operador possui
 
 Armazena os pedidos realizados pelos consumidores durante um evento. É a tabela central do sistema, conectando o evento, a sessão do consumidor, os pagamentos e o operador que realizou a entrega.
 
-| **Campo**       | **Tipo**    | **Obrigatório** | **Descrição**                                                                                                           |
-|-----------------|-------------|-----------------|-------------------------------------------------------------------------------------------------------------------------|
-| id              | UUID        | Sim             | Identificador único do pedido, utilizado também como conteúdo do QR Code do comprovante                                 |
-| event_id        | UUID        | Sim             | Referência ao evento em que o pedido foi realizado. Chave estrangeira para a tabela events                              |
-| client_id       | UUID        | Não             | Referência à sessão anônima do consumidor no Supabase Auth. Esvaziado quando a sessão é excluída pela rotina de limpeza |
-| operator_id     | UUID        | Não             | Referência ao operador que leu o QR Code e realizou o atendimento. Chave estrangeira para a tabela operators            |
-| order_code      | TEXT        | Sim             | Código exibido no comprovante do consumidor para identificação visual do pedido, no formato GH7-382: duas letras, um dígito, hífen e três dígitos, sem caracteres que se confundem (0 e O, 1 e I). Gerado aleatoriamente; único dentro do evento, e em caso de colisão um novo código é gerado |
-| total_amount    | DECIMAL     | Sim             | Valor total do pedido, calculado pelo backend com base nos itens e quantidades no momento da compra                     |
-| refunded_amount | DECIMAL     | Sim             | Soma dos valores de itens do pedido estornados ao consumidor. Inicia em zero. Não inclui os estornos automáticos do sistema (late_payment e duplicate_payment) |
-| status          | TEXT        | Sim             | Estado atual do pedido: awaiting_payment, paid, in_service, collected, refunded ou expired                              |
-| paid_at         | TIMESTAMPTZ | Não             | Data e hora em que o pagamento foi confirmado pelo Pagar.me                                                             |
-| in_service_at   | TIMESTAMPTZ | Não             | Data e hora em que o operador leu o QR Code                                                                             |
-| collected_at    | TIMESTAMPTZ | Não             | Data e hora em que a entrega foi confirmada                                                                             |
-| created_at      | TIMESTAMPTZ | Sim             | Data e hora em que o pedido foi criado. Exibido no comprovante do consumidor                                            |
-| updated_at      | TIMESTAMPTZ | Sim             | Data e hora da última alteração do registro                                                                             |
+| **Campo**     | **Tipo**    | **Obrigatório** | **Descrição**                                                                                                                                                                                 |
+|---------------|-------------|-----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| id            | UUID        | Sim             | Identificador único do pedido, utilizado também como conteúdo do QR Code do comprovante                                                                                                       |
+| event_id      | UUID        | Sim             | Referência ao evento em que o pedido foi realizado. Chave estrangeira para a tabela events                                                                                                    |
+| client_id     | UUID        | Não             | Referência à sessão anônima do consumidor no Supabase Auth. Esvaziado quando a sessão é excluída pela rotina de limpeza                                                                       |
+| operator_id   | UUID        | Não             | Referência ao operador que leu o QR Code e realizou o atendimento. Chave estrangeira para a tabela operators                                                                                  |
+| order_code    | TEXT        | Sim             | Código exibido no comprovante para identificação visual do pedido, no formato AA0-000 (por exemplo, GH7-382), sem caracteres que se confundem. Gerado aleatoriamente e único dentro do evento |
+| total_amount  | DECIMAL     | Sim             | Valor total do pedido, calculado pelo backend com base nos itens e quantidades no momento da compra                                                                                           |
+| status        | TEXT        | Sim             | Estado atual do pedido: awaiting_payment, paid, in_service, collected ou expired                                                                                                              |
+| paid_at       | TIMESTAMPTZ | Não             | Data e hora em que o pagamento foi confirmado pelo Mercado Pago                                                                                                                               |
+| in_service_at | TIMESTAMPTZ | Não             | Data e hora em que o operador leu o QR Code                                                                                                                                                   |
+| collected_at  | TIMESTAMPTZ | Não             | Data e hora em que a entrega foi confirmada                                                                                                                                                   |
+| created_at    | TIMESTAMPTZ | Sim             | Data e hora em que o pedido foi criado. Exibido no comprovante do consumidor                                                                                                                  |
+| updated_at    | TIMESTAMPTZ | Sim             | Data e hora da última alteração do registro                                                                                                                                                   |
 
 ## 8.8 Tabela: order_items
 
 Armazena os itens individuais de cada pedido. Como um pedido pode conter múltiplos itens, esta tabela faz a ligação entre um pedido e os itens do cardápio que o compõem, registrando também o preço unitário no momento da compra para garantir que variações futuras no cardápio não alterem o histórico de pedidos.
 
-| **Campo**         | **Tipo**    | **Obrigatório** | **Descrição**                                                                                                   |
-|-------------------|-------------|-----------------|-----------------------------------------------------------------------------------------------------------------|
-| id                | UUID        | Sim             | Identificador único do item do pedido                                                                           |
-| order_id          | UUID        | Sim             | Referência ao pedido ao qual o item pertence. Chave estrangeira para a tabela orders                            |
-| menu_item_id      | UUID        | Sim             | Referência ao item do cardápio solicitado. Chave estrangeira para a tabela menu_items                           |
-| quantity          | INTEGER     | Sim             | Quantidade do item solicitada pelo consumidor neste pedido                                                      |
-| unit_price        | DECIMAL     | Sim             | Preço unitário do item no momento em que o pedido foi realizado, independente de alterações futuras no cardápio |
-| refunded_quantity | INTEGER     | Sim             | Quantidade deste item que foi estornada. Inicia em zero                                                         |
-| created_at        | TIMESTAMPTZ | Sim             | Data e hora de criação do registro                                                                              |
-| updated_at        | TIMESTAMPTZ | Sim             | Data e hora da última alteração do registro                                                                     |
+| **Campo**      | **Tipo**    | **Obrigatório** | **Descrição**                                                                                                        |
+|----------------|-------------|-----------------|----------------------------------------------------------------------------------------------------------------------|
+| id             | UUID        | Sim             | Identificador único do item do pedido                                                                                |
+| order_id       | UUID        | Sim             | Referência ao pedido ao qual o item pertence. Chave estrangeira para a tabela orders                                 |
+| menu_item_id   | UUID        | Sim             | Referência ao item do cardápio solicitado. Chave estrangeira para a tabela menu_items                                |
+| quantity       | INTEGER     | Sim             | Quantidade do item solicitada pelo consumidor neste pedido                                                           |
+| unit_price     | DECIMAL     | Sim             | Preço unitário do item no momento em que o pedido foi realizado, independente de alterações futuras no cardápio      |
+| is_undelivered | BOOLEAN     | Sim             | Indica que o item não foi entregue porque acabou. Marcado pelo operador na confirmação da entrega. Inicia como false |
+| created_at     | TIMESTAMPTZ | Sim             | Data e hora de criação do registro                                                                                   |
+| updated_at     | TIMESTAMPTZ | Sim             | Data e hora da última alteração do registro                                                                          |
 
 ## 8.9 Tabela: payments
 
-Armazena cada tentativa de pagamento de um pedido. Um pedido pode ter várias tentativas, por exemplo um cartão recusado seguido de um Pix aprovado, e todas ficam registradas.
+Armazena cada tentativa de pagamento de um pedido. Um pedido pode ter várias tentativas, por exemplo um cartão recusado seguido de um Pix aprovado, mas só uma pode estar pendente por vez.
 
-| **Campo**         | **Tipo**    | **Obrigatório** | **Descrição**                                                                   |
-|-------------------|-------------|-----------------|---------------------------------------------------------------------------------|
-| id                | UUID        | Sim             | Identificador único da tentativa de pagamento                                   |
-| order_id          | UUID        | Sim             | Referência ao pedido. Chave estrangeira para a tabela orders                    |
-| method            | TEXT        | Sim             | Forma de pagamento da tentativa: pix ou credit_card                             |
-| status            | TEXT        | Sim             | Estado da tentativa: pending, paid, failed, expired ou cancelled (Pix cancelado quando o consumidor troca para o cartão). Cada pedido tem no máximo uma tentativa pending por vez |
-| amount            | DECIMAL     | Sim             | Valor cobrado na tentativa                                                      |
-| pagarme_order_id  | TEXT        | Sim             | Identificador do pedido no Pagar.me                                             |
-| pagarme_charge_id | TEXT        | Não             | Identificador da cobrança no Pagar.me, usado nos webhooks e nos estornos. Único |
-| expires_at        | TIMESTAMPTZ | Não             | Prazo de pagamento do Pix, igual ao horário limite do pedido (15 minutos após a criação do pedido) e enviado ao Pagar.me como expiração da cobrança. Não se aplica ao cartão |
-| paid_at           | TIMESTAMPTZ | Não             | Data e hora da aprovação da tentativa                                           |
-| created_at        | TIMESTAMPTZ | Sim             | Data e hora de criação da tentativa                                             |
-| updated_at        | TIMESTAMPTZ | Sim             | Data e hora da última alteração do registro                                     |
+| **Campo**       | **Tipo**    | **Obrigatório** | **Descrição**                                                                                       |
+|-----------------|-------------|-----------------|-----------------------------------------------------------------------------------------------------|
+| id              | UUID        | Sim             | Identificador único da tentativa de pagamento                                                       |
+| order_id        | UUID        | Sim             | Referência ao pedido. Chave estrangeira para a tabela orders                                        |
+| method          | TEXT        | Sim             | Forma de pagamento da tentativa: pix ou credit_card                                                 |
+| status          | TEXT        | Sim             | Estado da tentativa: pending, paid, failed, cancelled ou expired                                    |
+| amount          | DECIMAL     | Sim             | Valor cobrado na tentativa                                                                          |
+| mp_payment_id   | TEXT        | Sim             | Identificador do pagamento no Mercado Pago, usado nas notificações e nas consultas. Único           |
+| application_fee | DECIMAL     | Sim             | Comissão da plataforma enviada ao Mercado Pago: 5% do valor total do pedido, calculada pelo backend |
+| expires_at      | TIMESTAMPTZ | Não             | Prazo de pagamento do Pix (15 minutos), também enviado ao Mercado Pago. Não se aplica ao cartão     |
+| paid_at         | TIMESTAMPTZ | Não             | Data e hora da aprovação da tentativa                                                               |
+| created_at      | TIMESTAMPTZ | Sim             | Data e hora de criação da tentativa                                                                 |
+| updated_at      | TIMESTAMPTZ | Sim             | Data e hora da última alteração do registro                                                         |
 
 ## 8.10 Tabela: payment_webhooks
 
-Registra cada aviso recebido do Pagar.me. Garante a idempotência: um aviso repetido é reconhecido pelo identificador do evento e não é processado novamente.
+Registra cada notificação recebida do Mercado Pago. Garante a idempotência: uma notificação repetida é reconhecida pelo seu identificador e não é processada novamente.
 
-| **Campo**        | **Tipo**    | **Obrigatório** | **Descrição**                                             |
-|------------------|-------------|-----------------|-----------------------------------------------------------|
-| id               | UUID        | Sim             | Identificador único do registro                           |
-| pagarme_event_id | TEXT        | Sim             | Identificador do aviso enviado pelo Pagar.me. Único       |
-| event_type       | TEXT        | Sim             | Tipo do aviso, por exemplo charge.paid ou charge.refunded |
-| payload          | JSONB       | Sim             | Conteúdo completo do aviso, para auditoria                |
-| processed_at     | TIMESTAMPTZ | Não             | Data e hora em que o aviso foi processado com sucesso     |
-| created_at       | TIMESTAMPTZ | Sim             | Data e hora de recebimento do aviso                       |
-
-## 8.11 Tabela: refunds
-
-Registra cada estorno realizado, parcial ou total, com o operador responsável, permitindo a auditoria pelo estabelecimento. Também registra os estornos automáticos feitos pelo sistema, sem operador: pagamento confirmado depois de o pedido expirar e pagamento em duplicidade.
-
-| **Campo**   | **Tipo**    | **Obrigatório** | **Descrição**                                                                                             |
-|-------------|-------------|-----------------|-----------------------------------------------------------------------------------------------------------|
-| id          | UUID        | Sim             | Identificador único do estorno                                                                            |
-| order_id    | UUID        | Sim             | Referência ao pedido estornado. Chave estrangeira para a tabela orders                                    |
-| payment_id  | UUID        | Sim             | Referência à tentativa de pagamento aprovada que será estornada. Chave estrangeira para a tabela payments |
-| operator_id | UUID        | Não             | Referência ao operador que registrou o estorno. Chave estrangeira para a tabela operators. Vazio nos estornos automáticos do sistema |
-| amount      | DECIMAL     | Sim             | Valor devolvido ao consumidor                                                                             |
-| reason      | TEXT        | Sim             | Motivo do estorno: item_sold_out (item esgotado) ou order_cancelled (pedido inteiro estornado), registrados pelo operador; late_payment (pagamento confirmado após a expiração do pedido) ou duplicate_payment (segunda tentativa aprovada para o mesmo pedido), registrados automaticamente pelo sistema. operator_id é obrigatório nos dois primeiros e vazio nos dois últimos (restrição CHECK) |
-| status      | TEXT        | Sim             | Situação do estorno no Pagar.me: pending, completed ou failed                                             |
-| created_at  | TIMESTAMPTZ | Sim             | Data e hora em que o estorno foi registrado                                                               |
-| updated_at  | TIMESTAMPTZ | Sim             | Data e hora da última alteração do registro                                                               |
-
-## 8.12 Tabela: refund_items
-
-Registra quais itens e quantidades fizeram parte de cada estorno. Os estornos automáticos do sistema (late_payment e duplicate_payment) devolvem a tentativa de pagamento inteira e não possuem registros nesta tabela.
-
-| **Campo**     | **Tipo**    | **Obrigatório** | **Descrição**                                                                       |
-|---------------|-------------|-----------------|-------------------------------------------------------------------------------------|
-| id            | UUID        | Sim             | Identificador único do registro                                                     |
-| refund_id     | UUID        | Sim             | Referência ao estorno. Chave estrangeira para a tabela refunds                      |
-| order_item_id | UUID        | Sim             | Referência ao item do pedido estornado. Chave estrangeira para a tabela order_items |
-| quantity      | INTEGER     | Sim             | Quantidade estornada do item                                                        |
-| amount        | DECIMAL     | Sim             | Valor estornado referente ao item                                                   |
-| created_at    | TIMESTAMPTZ | Sim             | Data e hora de criação do registro                                                  |
-| updated_at    | TIMESTAMPTZ | Sim             | Data e hora da última alteração do registro                                         |
+| **Campo**          | **Tipo**    | **Obrigatório** | **Descrição**                                                       |
+|--------------------|-------------|-----------------|---------------------------------------------------------------------|
+| id                 | UUID        | Sim             | Identificador único do registro                                     |
+| mp_notification_id | TEXT        | Sim             | Identificador da notificação enviada pelo Mercado Pago. Único       |
+| event_type         | TEXT        | Sim             | Tipo da notificação, por exemplo payment.created ou payment.updated |
+| payload            | JSONB       | Sim             | Conteúdo completo da notificação, para auditoria                    |
+| processed_at       | TIMESTAMPTZ | Não             | Data e hora em que o aviso foi processado com sucesso               |
+| created_at         | TIMESTAMPTZ | Sim             | Data e hora de recebimento do aviso                                 |
 
 # 9 MODELO DE NEGÓCIO
 
 ## 9.1 Modelo de Receita
 
-A plataforma adota o modelo de taxa por transação, cobrando 5% sobre o valor total de cada pedido realizado. Esse percentual é descontado automaticamente a cada transação via split do Pagar.me, sem necessidade de nenhuma ação manual de cobrança. A taxa do meio de pagamento cobrada pelo Pagar.me e eventuais chargebacks ficam a cargo do estabelecimento, que recebe os 95% restantes, da mesma forma que já ocorre com as máquinas de cartão. O modelo foi escolhido por três razões principais: elimina completamente a barreira de entrada para o estabelecimento, que não paga nada adiantado para começar a usar a plataforma; alinha diretamente os interesses da plataforma com os do estabelecimento, pois ambos só ganham quando o evento acontece e gera pedidos; e é praticamente invisível para o consumidor final, representando menos de R\$ 1,00 a cada R\$ 20,00 em compras.
+A plataforma adota o modelo de taxa por transação, cobrando 5% sobre o valor total de cada pedido realizado. Esse percentual é repassado automaticamente à plataforma a cada transação, pelo split do Mercado Pago, sem necessidade de nenhuma ação manual de cobrança. A taxa do meio de pagamento cobrada pelo Mercado Pago e eventuais chargebacks ficam a cargo do estabelecimento, que recebe o restante diretamente na própria conta Mercado Pago, da mesma forma que já ocorre com as máquinas de cartão. O modelo foi escolhido por três razões principais: elimina completamente a barreira de entrada para o estabelecimento, que não paga nada adiantado para começar a usar a plataforma; alinha diretamente os interesses da plataforma com os do estabelecimento, pois ambos só ganham quando o evento acontece e gera pedidos; e é praticamente invisível para o consumidor final, representando menos de R\$ 1,00 a cada R\$ 20,00 em compras.
 
 ## 9.2 Projeção de Receita
 
@@ -602,11 +581,11 @@ A estratégia de crescimento foi estruturada em quatro fases progressivas, cada 
 
 Foram desenvolvidos três protótipos interativos navegáveis em HTML, representando as principais interfaces da plataforma. Os protótipos simulam o fluxo real de uso de cada perfil, permitindo que qualquer pessoa possa visualizar e interagir com a solução antes do início do desenvolvimento.
 
-- Protótipo do consumidor e operador: simula o fluxo completo do consumidor, desde a tela de seleção de evento, passando pelo cardápio com itens esgotados, pelo pagamento via Pix com QR Code, código copia e cola e contagem regressiva, e pelo formulário de cartão com tratamento de recusa, até o comprovante com QR Code e status em tempo real. Inclui os avisos de pedido em aberto no topo do cardápio. Do lado do operador, simula o login com código, o scanner com câmera simulada, o pedido reservado com as ações de confirmar entrega, cancelar atendimento e marcar item esgotado com estorno, e as mensagens de erro de leitura.
+- Protótipo do consumidor e operador: simula o fluxo completo do consumidor, desde a tela de seleção de evento, passando pelo cardápio com itens esgotados, pelo pagamento via Pix com QR Code, código copia e cola e contagem regressiva, e pelo formulário de cartão com tratamento de recusa, até o comprovante com QR Code e status em tempo real. Inclui os avisos de pedido em aberto no topo do cardápio. Do lado do operador, simula o login com código, o scanner com câmera simulada, o pedido reservado com as ações de confirmar entrega, cancelar atendimento e indicar itens que acabaram, e as mensagens de erro de leitura.
 
-- Protótipo do estabelecimento: simula o login e o cadastro com CPF ou CNPJ, o aviso de cadastro aguardando aprovação, o dashboard de faturamento em tempo real, a listagem de eventos com status calculado, a criação de eventos a partir de cardápios reutilizáveis e a publicação, o gerenciamento de cardápios e dos itens do evento com controle de disponibilidade, o cadastro de operadores com código exibido uma única vez e envio pelo WhatsApp, a tela de link e QR Code fixo, o acompanhamento de pedidos ao vivo e a auditoria de estornos.
+- Protótipo do estabelecimento: simula o login e o cadastro com CPF ou CNPJ e a conexão da conta Mercado Pago, o aviso de cadastro aguardando aprovação, o dashboard de faturamento em tempo real, a listagem de eventos com status calculado, a criação de eventos a partir de cardápios reutilizáveis e a publicação, o gerenciamento de cardápios e dos itens do evento com controle de disponibilidade, o cadastro de operadores com código exibido uma única vez e envio pelo WhatsApp, a tela de link e QR Code fixo e o acompanhamento de pedidos ao vivo, com os itens não entregues.
 
-- Protótipo do administrador: simula o login, a visão geral do dia, o faturamento mensal com gráfico de vendas por dia e tabela por estabelecimento, a busca de pedido pelo código com o histórico completo e a análise de cadastros, com as listas de cadastros pendentes, aprovados e rejeitados, os dados e as verificações de cada estabelecimento, a aprovação e a rejeição com confirmação e a alteração excepcional do endereço do link, com o aviso de que os QR Codes já impressos deixam de funcionar.
+- Protótipo do administrador: simula o login, a visão geral do dia, o faturamento mensal com gráfico de vendas por dia e tabela por estabelecimento, a busca de pedido pelo código com o histórico completo e a análise de cadastros, com as listas de cadastros pendentes, aprovados e rejeitados, os dados e as verificações de cada estabelecimento, inclusive a conta Mercado Pago conectada, a aprovação e a rejeição com confirmação e a alteração excepcional do endereço do link, com o aviso de que os QR Codes já impressos deixam de funcionar.
 
 Os protótipos foram desenvolvidos com identidade visual própria, utilizando a fonte Space Grotesk para elementos de destaque, como nome do evento e códigos de pedido, e Inter para textos de interface. O tema claro com azul principal (#2B6CB0), fundo das telas em cinza muito claro (#F7FAFC) e cards brancos foi escolhido para garantir legibilidade em ambientes com baixa iluminação, característicos de eventos noturnos como shows e festas.
 
@@ -614,12 +593,12 @@ Os protótipos foram desenvolvidos com identidade visual própria, utilizando a 
 
 O roadmap de desenvolvimento define as entregas planejadas em cada fase do produto, organizadas de forma a priorizar o que é essencial para validação no mundo real antes de evoluir para funcionalidades mais complexas:
 
-| **Fase** | **Entregas previstas**                                                                                                                                                                                                                                                                                                         | **Objetivo da fase**                                                    |
-|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
-| MVP      | QR Code fixo do estabelecimento, tela de seleção de evento, cardápios reutilizáveis, pagamento via Pix e cartão, QR Code do comprovante, app do operador com scanner e estorno de itens esgotados, painel do estabelecimento básico, painel do administrador com aprovação de cadastros, faturamento mensal e busca de pedidos | Validar a solução em um ambiente real de evento                         |
-| Fase 2   | Dashboard completo com gráficos, relatórios por período, histórico de eventos, busca e filtro de operadores, métricas individuais por operador, status online e offline dos operadores, categorias de cardápio personalizáveis                                                                                                 | Aprimorar a experiência de gestão do estabelecimento                    |
-| Fase 3   | Suporte a múltiplos balcões com cardápios distintos, notificações push para operadores, envio automático do código de acesso por SMS ou WhatsApp, migração para infraestrutura escalável conforme demanda                                                                                                                      | Preparar a plataforma para operações de maior porte                     |
-| Fase 4   | Integração com plataformas de venda de ingressos, desenvolvimento de app nativo para o consumidor                                                                                                                                                                                                                              | Expandir o alcance e a presença da plataforma no ecossistema de eventos |
+| **Fase** | **Entregas previstas**                                                                                                                                                                                                                                                                                                          | **Objetivo da fase**                                                    |
+|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
+| MVP      | QR Code fixo do estabelecimento, tela de seleção de evento, cardápios reutilizáveis, pagamento via Pix e cartão, QR Code do comprovante, app do operador com scanner e registro de itens esgotados, painel do estabelecimento básico, painel do administrador com aprovação de cadastros, faturamento mensal e busca de pedidos | Validar a solução em um ambiente real de evento                         |
+| Fase 2   | Dashboard completo com gráficos, relatórios por período, histórico de eventos, busca e filtro de operadores, métricas individuais por operador, status online e offline dos operadores, categorias de cardápio personalizáveis, estornos pela plataforma                                                                        | Aprimorar a experiência de gestão do estabelecimento                    |
+| Fase 3   | Suporte a múltiplos balcões com cardápios distintos, notificações push para operadores, envio automático do código de acesso por SMS ou WhatsApp, migração para infraestrutura escalável conforme demanda                                                                                                                       | Preparar a plataforma para operações de maior porte                     |
+| Fase 4   | Integração com plataformas de venda de ingressos, desenvolvimento de app nativo para o consumidor                                                                                                                                                                                                                               | Expandir o alcance e a presença da plataforma no ecossistema de eventos |
 
 # 12 CONSIDERAÇÕES FINAIS
 
@@ -643,12 +622,10 @@ CENTRO PAULA SOUZA. Gestão de Eventos. Disponível em: https://www.cps.sp.gov.b
 
 FLUTTER. Flutter documentation. Disponível em: https://docs.flutter.dev/. Acesso em: 12 ago. 2026.
 
-PAGAR.ME. Documentação da API. Disponível em: https://docs.pagar.me/. Acesso em: 12 ago. 2026.
-
-PAGAR.ME. Estorno: como estornar uma transação. Central de Ajuda Pagar.me. Disponível em: https://pagarme.helpjuice.com/pt_BR/p1-transa%C3%A7%C3%B5es-e-estornos/estorno-como-estornar-uma-transa%C3%A7%C3%A3o. Acesso em: 29 set. 2026.
+MERCADO PAGO. Split de pagamentos: integrar o checkout. Mercado Pago Developers. Disponível em: https://www.mercadopago.com.br/developers/pt/docs/split-payments/split-1-1/integration-configuration/integrate-marketplace. Acesso em: 15 out. 2026.
 
 RAILWAY. Pricing. Railway Documentation. Disponível em: https://docs.railway.com/pricing. Acesso em: 12 ago. 2026.
 
-SUPABASE. Supabase documentation. Disponível em: https://supabase.com/docs. Acesso em: 29 set. 2026.
-
 SÃO PAULO CONVENTION & VISITORS BUREAU. São Paulo registra alta de 60% no número de eventos realizados no primeiro semestre desse ano. M.I.C.E.&B. – SP para Eventos & Negócios, 8 jul. 2025. Disponível em: https://mice.visitesaopaulo.com/sao-paulo-registra-alta-de-60-no-numero-de-eventos-realizados-no-primeiro-semestre-desse-ano/. Acesso em: 12 ago. 2026.
+
+SUPABASE. Supabase documentation. Disponível em: https://supabase.com/docs. Acesso em: 29 set. 2026.

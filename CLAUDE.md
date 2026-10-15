@@ -5,10 +5,10 @@ App de pedidos digitais para eventos e shows que elimina filas no bar. O consumi
 ## Documentação (fonte da verdade)
 Antes de implementar qualquer coisa ligada a requisitos, arquitetura, API, banco de dados ou interface, consulte:
 
-- `docs/especificacao.md`: requisitos, fluxos (seção 5), segurança (6), arquitetura e autenticação (7), **rotas da API (7.5)** e **dicionário de dados com as 12 tabelas (8)**
+- `docs/especificacao.md`: requisitos, fluxos (seção 5), segurança (6), arquitetura e autenticação (7), **rotas da API (7.5)** e **dicionário de dados com as 10 tabelas (8)**
 - `docs/Documentação-Proj_01.docx`: versão original em Word do mesmo documento
-- `docs/prototipos/prototipo-eventobeer-azul.html`: consumidor (seleção de evento → cardápio → Pix/cartão → comprovante, com avisos de pedido em aberto) e app do operador (login com código, scanner, atendimento, estorno)
-- `docs/prototipos/prototipo-organizador-azul.html`: painel do estabelecimento (login/cadastro, aprovação, dashboard, eventos, cardápios, itens do evento, operadores, link e QR Code, pedidos ao vivo, estornos)
+- `docs/prototipos/prototipo-eventobeer-azul.html`: consumidor (seleção de evento → cardápio → Pix/cartão → comprovante, com avisos de pedido em aberto) e app do operador (login com código, scanner, atendimento, "Acabou", confirmar entrega e cancelar atendimento)
+- `docs/prototipos/prototipo-organizador-azul.html`: painel do estabelecimento (login/cadastro, aprovação, conexão da conta Mercado Pago, dashboard, eventos, cardápios, itens do evento, operadores, link e QR Code, pedidos ao vivo)
 - `docs/prototipos/prototipo-admin-azul.html`: painel do administrador (visão geral, faturamento mensal, busca de pedido, cadastros)
 
 Não invente requisitos que não estejam documentados sem sinalizar a decisão. Se um pedido entrar em conflito com a documentação, os protótipos ou o modelo de dados, avise antes de implementar e explique o impacto. Quando uma decisão mudar o que está documentado, atualize `docs/especificacao.md` no mesmo PR.
@@ -27,7 +27,7 @@ docs/             especificação e protótipos
 - **Banco + Auth + Realtime**: Supabase (PostgreSQL 15)
 - **ORM**: Prisma (migrations e queries tipadas)
 - **Validação**: Zod em todos os inputs de rota
-- **Pagamentos**: Pagar.me v5 (Pix + cartão). Split: 5% plataforma; o estabelecimento recebe os 95% restantes, descontada a taxa do Pagar.me. Chargebacks ficam com o estabelecimento
+- **Pagamentos**: Mercado Pago (Pix + cartão), com OAuth por estabelecimento e split pelo `application_fee`. Split: 5% plataforma; o estabelecimento recebe o restante na própria conta Mercado Pago, descontada a taxa do Mercado Pago. Chargebacks ficam com o estabelecimento
 - **Flutter**: versão estável mais recente, Riverpod para estado
 - **Gerenciador de pacotes Node**: pnpm
 
@@ -51,7 +51,7 @@ backend/src/
   schemas/       schemas Zod
   types/         interfaces TypeScript
   utils/         funções auxiliares puras
-  jobs/          rotinas agendadas (limpeza de sessões anônimas, expiração de pedidos Pix)
+  jobs/          rotinas agendadas (limpeza de sessões anônimas, expiração de pedidos Pix, renovação dos tokens do Mercado Pago)
 ```
 
 ## Autenticação por perfil
@@ -63,32 +63,34 @@ backend/src/
 - Toda gravação passa pelo backend (Prisma)
 - O Flutter acessa o Supabase direto só para Auth e Realtime
 - RLS ativo em todas as tabelas, com políticas apenas de leitura para o Realtime: o estabelecimento lê os pedidos dos próprios eventos; cada sessão anônima lê só os próprios pedidos
+- Sessões anônimas usam o papel `authenticated`: toda política confere a posse por `auth.uid()`, nunca só o fato de estar autenticado
+- Data API do Supabase desligada
 - `auth.users` não é gerenciada pelo Prisma: a FK para ela é criada em migration SQL manual
 
 ## Regras de negócio críticas
 - Status do evento é calculado (rascunho, agendado, ativo, encerrado) a partir de `published_at`, `starts_at`, `ends_at`; não existe coluna de status
-- Pedido: `awaiting_payment → paid → in_service → collected`; também `in_service → paid` (cancelar atendimento), `in_service → refunded` e `awaiting_payment → expired` (15 min). Estorno parcial não muda o status: fica em `refunded_amount` e `refunds`
+- Pedido: `awaiting_payment → paid → in_service → collected`; também `in_service → paid` (cancelar atendimento), `awaiting_payment → expired` (15 min) e `expired → paid` (pagamento atrasado com o evento em andamento). Não existe `refunded`
 - A reserva na leitura é atômica (`UPDATE ... WHERE status = 'paid'`). Um operador só tem um atendimento aberto por vez, verificado no backend
 - Validade do QR = `status = 'paid'` e evento não encerrado. Não existe `is_qr_valid`
-- Estorno parcial ou total feito pelo operador marca o item do evento como `is_available = false`
+- "Acabou" no app do operador: na confirmação da entrega, os itens marcados ficam com `order_items.is_undelivered = true` e o item do evento fica `is_available = false`. O item esgotado continua no cardápio, acinzentado e com o selo "Esgotado", sem botão de adicionar. Troca ou devolução é combinada fora da plataforma
 - Cardápios do estabelecimento (`menus`) são modelos: os itens são copiados para `menu_items` na criação do evento
-- Estabelecimento com `approval_status` diferente de `approved` não publica eventos e não recebe o link/QR. `slug` não pode ser alterado pelo estabelecimento após a aprovação
+- Estabelecimento com `approval_status` diferente de `approved` não publica eventos e não recebe o link/QR. Publicar também exige a conta Mercado Pago conectada. `slug` não pode ser alterado pelo estabelecimento após a aprovação
 - `order_code` no formato `GH7-382` (2 letras, 1 dígito, hífen, 3 dígitos), sem 0/O e 1/I, gerado aleatoriamente; se colidir, gera outro. É único só dentro do evento, então buscas globais (admin) podem retornar mais de um pedido
 
 ## Pagamentos
-- Nunca considerar um pedido como pago com base em informação enviada pelo cliente
-- A confirmação é validada pelo backend via integração oficial com o Pagar.me, por webhook, registrando cada aviso em `payment_webhooks`
+- Nunca considerar um pedido como pago com base apenas em informação enviada pelo cliente
+- Cada estabelecimento conecta a própria conta Mercado Pago por OAuth; o pagamento é criado com o token do estabelecimento e a comissão no `application_fee` (5% do total, calculado no backend)
+- Tokens do Mercado Pago (`mp_access_token`, `mp_refresh_token`) guardados criptografados (`TOKEN_ENCRYPTION_KEY`), nunca enviados ao app; job renova o token antes de `mp_token_expires_at`, salvando o novo refresh token de forma atômica
+- A confirmação é validada pelo backend: webhook em `/webhooks/mercadopago` com verificação de assinatura e nova consulta do pagamento na API, registrando cada aviso em `payment_webhooks`
 - Operações de pagamento devem ser idempotentes
-- Nunca armazenar dados de cartão; tokenizar no Flutter com o Pagar.me
-- Não armazenar dados bancários do estabelecimento: enviá-los ao Pagar.me e guardar só `pagarme_recipient_id`
-- Registrar todos os estados e transições (`payments`, `refunds`, `refund_items`)
+- Uma tentativa pendente por pedido: cancelar o Pix pendente no Mercado Pago antes de criar outra tentativa
+- Pix criado no Mercado Pago com validade de 15 min; pagamento aprovado que chega para pedido `expired` reativa o pedido como `paid` se o evento ainda estiver em andamento
+- Nunca armazenar dados de cartão; tokenizar no Flutter com o Mercado Pago
+- Não armazenar dados bancários do estabelecimento
+- Registrar todos os estados e transições de pagamento em `payments`
+- Sem estornos pela plataforma no MVP
 - Valor do pedido sempre calculado no backend a partir de `menu_items`
-- Pix criado no Pagar.me com expiração igual ao limite do pedido (15 min após a criação do pedido), para o próprio Pagar.me recusar pagamento fora do prazo
-- No máximo uma tentativa `pending` por pedido. Na troca de Pix para cartão, cancelar antes o Pix no Pagar.me (`payments.status = 'cancelled'`); se o Pix já tiver sido pago, recusar a troca
-- Estorno automático do sistema (`refunds.operator_id` vazio, sem `refund_items`, sem somar em `orders.refunded_amount` e sem mudar o status do pedido):
-  - `late_payment`: `charge.paid` chega com o pedido já `expired`
-  - `duplicate_payment`: segunda tentativa aprovada para um pedido já pago
-- `refunds.reason`: `item_sold_out` e `order_cancelled` exigem `operator_id`; `late_payment` e `duplicate_payment` não têm operador (restrição CHECK)
+- Pagamento em duplicidade (segunda tentativa aprovada para pedido já pago): fica registrado em `payments`, aparece na busca do admin e o estabelecimento devolve pelo próprio Mercado Pago
 
 ## Autorização
 - Autenticação e autorização tratadas separadamente
@@ -112,7 +114,7 @@ backend/src/
 
 ## Testes
 - Testar regras de negócio críticas e os endpoints principais
-- Fluxos obrigatórios: webhook repetido, leitura simultânea do mesmo QR, estorno parcial, expiração do Pix, pagamento confirmado após a expiração, pagamento em duplicidade, acesso a recurso de outro estabelecimento
+- Fluxos obrigatórios: webhook repetido, leitura simultânea do mesmo QR, item que acabou na confirmação da entrega, expiração do Pix, Pix pago após expirar (reativa o pedido), pagamento em duplicidade, renovação do token do Mercado Pago, acesso a recurso de outro estabelecimento
 - Uma tarefa só está concluída quando os testes necessários estiverem passando
 
 ## Fluxo de trabalho

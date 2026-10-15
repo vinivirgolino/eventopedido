@@ -110,14 +110,16 @@
     display: flex; align-items: center; justify-content: space-between; gap: 12px; transition: border-color 0.2s, box-shadow 0.2s;
   }
   .item-card:hover { border-color: var(--azul-medio); box-shadow: 0 2px 8px rgba(43,108,176,0.1); }
-  .item-card.esgotado { opacity: 0.55; background: var(--cinza-fundo); }
+  .item-card.esgotado { background: #EDF2F7; }
+  .item-card.esgotado .item-emoji, .item-card.esgotado .item-info { opacity: 0.5; }
   .item-card.esgotado:hover { border-color: var(--cinza-borda); box-shadow: none; }
   .item-emoji { font-size: 28px; }
   .item-card.esgotado .item-emoji { filter: grayscale(1); }
+  .item-card.esgotado .item-preco { color: var(--cinza-sub); }
   .item-info { flex: 1; }
   .item-nome { font-weight: 600; font-size: 15px; color: var(--cinza-texto); }
   .item-preco { font-size: 13px; color: var(--azul); font-weight: 600; margin-top: 2px; }
-  .selo-esgotado { font-size: 11px; font-weight: 700; color: var(--cinza-sub); background: var(--cinza-borda); border-radius: 20px; padding: 4px 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .selo-esgotado { font-size: 11px; font-weight: 700; color: var(--cinza-texto); background: #CBD5E0; border-radius: 20px; padding: 4px 10px; text-transform: uppercase; letter-spacing: 0.05em; }
   .controle-qty { display: flex; align-items: center; gap: 10px; }
   .btn-qty {
     width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid var(--cinza-borda); background: var(--cinza-fundo);
@@ -158,8 +160,8 @@
   .linha-item { display: flex; justify-content: space-between; font-size: 14px; padding: 6px 0; border-bottom: 1px solid var(--cinza-borda); color: var(--cinza-texto); gap: 10px; }
   .linha-item:last-child { border-bottom: none; }
   .linha-item .valor { color: var(--azul); font-weight: 600; white-space: nowrap; }
-  .linha-item.estornado span { text-decoration: line-through; color: var(--cinza-sub); }
-  .linha-item.estornado .valor { color: var(--cinza-sub); }
+  .linha-item.nao-entregue span:first-child { text-decoration: line-through; color: var(--cinza-sub); }
+  .linha-item.nao-entregue .valor { color: var(--cinza-sub); }
   .metodos { display: flex; gap: 10px; }
   .metodo-btn {
     flex: 1; padding: 14px; border-radius: 12px; border: 1.5px solid var(--cinza-borda); background: var(--branco);
@@ -183,6 +185,8 @@
   .form-linha { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .erro-box { background: rgba(229,62,62,0.06); border: 1px solid rgba(229,62,62,0.3); border-radius: 12px; padding: 12px 14px; font-size: 13px; color: #9B2C2C; line-height: 1.5; }
   .erro-box strong { display: block; margin-bottom: 2px; }
+  .aviso-box { background: rgba(214,158,46,0.08); border: 1px solid rgba(214,158,46,0.4); border-radius: 12px; padding: 12px 14px; font-size: 13px; color: #744210; line-height: 1.5; }
+  .aviso-box strong { display: block; margin-bottom: 2px; }
   .seguro { font-size: 12px; color: var(--cinza-sub); text-align: center; }
 
   /* COMPROVANTE */
@@ -193,7 +197,6 @@
   .st-aguardando { background: var(--azul-claro); border-color: var(--azul-borda); color: var(--azul); }
   .st-atendimento { background: rgba(214,158,46,0.1); border-color: rgba(214,158,46,0.35); color: #975A16; }
   .st-retirado { background: rgba(56,161,105,0.1); border-color: rgba(56,161,105,0.35); color: var(--verde-ok); }
-  .st-estornado { background: rgba(229,62,62,0.08); border-color: rgba(229,62,62,0.3); color: var(--erro); }
   .pulse { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse 1.4s infinite; }
   @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.7); } }
 
@@ -283,7 +286,7 @@
   <button class="ativo" onclick="trocarModo('usuario')">👤 Consumidor</button>
   <button onclick="trocarModo('operador')">🍺 Operador do Bar</button>
 </div>
-<div class="dica-prototipo" id="dica">Protótipo navegável. Os botões com borda tracejada simulam respostas do Pagar.me e situações do balcão.</div>
+<div class="dica-prototipo" id="dica">Protótipo navegável. Os botões com borda tracejada simulam respostas do Mercado Pago e situações do balcão.</div>
 
 <!-- ============================ CONSUMIDOR ============================ -->
 <div class="phone" id="phone-usuario">
@@ -406,7 +409,7 @@
       </div>
       <div class="info-instrucao">Abra o app do seu banco, escolha <strong>Pix copia e cola</strong> e cole o código. Esta tela se atualiza sozinha quando o pagamento for confirmado.</div>
       <div class="simulacao">
-        <div class="simulacao-titulo">Simular resposta do Pagar.me</div>
+        <div class="simulacao-titulo">Simular resposta do Mercado Pago</div>
         <button class="btn-sim" onclick="pixConfirmado()">✓ Pix pago (webhook recebido)</button>
         <button class="btn-sim" onclick="pixExpirado()">⏱ Prazo do Pix esgotado</button>
       </div>
@@ -439,9 +442,9 @@
           <div class="form-campo"><label for="c-cvv">CVV</label><input id="c-cvv" inputmode="numeric" placeholder="123" value="123"></div>
         </div>
       </div>
-      <div class="seguro">🔒 Os dados do cartão vão direto para o Pagar.me e não passam pelo nosso servidor.</div>
+      <div class="seguro">🔒 Os dados do cartão vão direto para o Mercado Pago e não passam pelo nosso servidor.</div>
       <div class="simulacao">
-        <div class="simulacao-titulo">Simular resposta do Pagar.me</div>
+        <div class="simulacao-titulo">Simular resposta do Mercado Pago</div>
         <button class="btn-sim" onclick="cartaoRecusado()">✗ Cartão recusado</button>
       </div>
     </div>
@@ -534,11 +537,9 @@
         <div class="box-titulo">Itens · toque em “Acabou” se faltar algum</div>
         <div id="op-itens-lidos"></div>
       </div>
-      <div class="erro-box" id="estorno-resumo" style="display:none;"></div>
+      <div class="aviso-box" id="aviso-acabou" style="display:none;"></div>
       <div class="acoes-op">
         <button class="btn-principal" id="btn-confirmar" onclick="confirmarEntrega()">✓ Confirmar entrega</button>
-        <button class="btn-secundario btn-perigo" id="btn-estornar-marcados" style="display:none;" onclick="estornarMarcados()">Estornar itens que acabaram</button>
-        <button class="btn-secundario btn-perigo" onclick="estornarTudo()">Estornar pedido inteiro</button>
         <button class="btn-secundario" onclick="cancelarAtendimento()">Cancelar atendimento</button>
       </div>
     </div>
@@ -574,7 +575,7 @@
 
   let qtds = {};
   let metodo = 'pix';
-  let pedidos = [];          // { codigo, itens:[{id,nome,qty,preco,estornado}], status, metodo, hora, operador }
+  let pedidos = [];          // { codigo, itens:[{id,nome,qty,preco,naoEntregue}], status, metodo, hora, operador }
   let pedidoAtual = null;    // pedido em pagamento / exibido no comprovante
   let pixTimer = null, pixRestante = 900;
   let avisoExpiradoPendente = false;
@@ -588,7 +589,6 @@
   const fmt = v => 'R$ ' + v.toFixed(2).replace('.', ',');
   const agoraHora = () => { const d = new Date(); return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); };
   const totalPedido = p => p.itens.reduce((a, it) => a + it.qty * it.preco, 0);
-  const totalEstornado = p => p.itens.reduce((a, it) => a + (it.estornado || 0) * it.preco, 0);
 
   // ------------------------------------------------------------------ navegação
   function irPara(id) {
@@ -710,7 +710,7 @@
 
   // Cria o pedido (awaiting_payment) e segue para a tentativa de pagamento
   function confirmarPedido() {
-    const itens = cardapio.filter(i => qtds[i.id] > 0).map(i => ({ id: i.id, nome: i.nome, qty: qtds[i.id], preco: i.preco, estornado: 0 }));
+    const itens = cardapio.filter(i => qtds[i.id] > 0).map(i => ({ id: i.id, nome: i.nome, qty: qtds[i.id], preco: i.preco, naoEntregue: false }));
     pedidoAtual = { codigo: codigosPedido[pedidos.length % codigosPedido.length], itens, status: 'awaiting_payment', metodo, hora: agoraHora(), operador: null };
     pedidos.unshift(pedidoAtual);
     qtds = {};
@@ -811,12 +811,10 @@
     const p = pedidoAtual;
     if (!p) return;
     const corpo = document.getElementById('comprovante-corpo');
-    const estornado = totalEstornado(p);
     const status = {
       paid:       { cls: 'st-aguardando', txt: '<div class="pulse"></div>Aguardando retirada' },
       in_service: { cls: 'st-atendimento', txt: `<div class="pulse"></div>Em atendimento · ${p.operador ? p.operador.balcao : ''}` },
       collected:  { cls: 'st-retirado', txt: '✓ Retirado' },
-      refunded:   { cls: 'st-estornado', txt: '↩ Pedido estornado' },
     }[p.status];
 
     let bloco;
@@ -827,30 +825,24 @@
           <div class="qr-validade">Válido até 02:00 (fim do evento)</div>
         </div>
         <div class="info-instrucao">Mostre o QR Code em qualquer balcão. <strong>Dica: tire um print desta tela</strong> para garantir o acesso ao QR Code.</div>`;
-    } else if (p.status === 'collected') {
+    } else {
       bloco = `<div class="qr-wrapper"><div class="qr-final-icon">✅</div>
         <div class="qr-final-texto" style="color:var(--verde-ok);">Pedido retirado às ${p.horaEntrega}.<br>Este QR Code não vale mais.</div></div>`;
-    } else {
-      bloco = `<div class="qr-wrapper"><div class="qr-final-icon">↩️</div>
-        <div class="qr-final-texto" style="color:var(--erro);">O valor foi devolvido para o seu ${p.metodo === 'pix' ? 'Pix' : 'cartão'}.<br>Este QR Code não vale mais.</div></div>`;
     }
 
     const itens = p.itens.map(it => {
-      const linhas = [];
-      const ok = it.qty - (it.estornado || 0);
-      if (ok > 0) linhas.push(`<div class="linha-item"><span>${ok}x ${it.nome}</span><span class="valor">${fmt(ok * it.preco)}</span></div>`);
-      if (it.estornado) linhas.push(`<div class="linha-item estornado"><span>${it.estornado}x ${it.nome}</span><span class="valor">estornado</span></div>`);
-      return linhas.join('');
+      if (it.naoEntregue) return `<div class="linha-item nao-entregue"><span>${it.qty}x ${it.nome}</span><span class="valor">não entregue (acabou)</span></div>`;
+      return `<div class="linha-item"><span>${it.qty}x ${it.nome}</span><span class="valor">${fmt(it.qty * it.preco)}</span></div>`;
     }).join('');
 
     corpo.innerHTML = `
-      <div class="check-circle">${p.status === 'refunded' ? '↩️' : '✅'}</div>
-      <div class="comprovante-titulo">${p.status === 'refunded' ? 'Pedido estornado' : 'Pagamento confirmado!'}</div>
+      <div class="check-circle">✅</div>
+      <div class="comprovante-titulo">Pagamento confirmado!</div>
       <div class="status-badge ${status.cls}">${status.txt}</div>
       ${bloco}
       <div class="box" style="width:100%;">
         ${itens}
-        ${estornado > 0 ? `<div class="linha-item"><span>Devolvido ao seu ${p.metodo === 'pix' ? 'Pix' : 'cartão'}</span><span class="valor" style="color:var(--erro);">− ${fmt(estornado)}</span></div>` : ''}
+        ${p.itens.some(it => it.naoEntregue) ? `<div style="font-size:12px;color:var(--cinza-sub);margin-top:8px;line-height:1.5;">Algum item acabou? Fale com o balcão para combinar uma troca ou a devolução do valor.</div>` : ''}
       </div>
       <div class="comp-horario">Pedido ${p.codigo} · pago às ${p.hora} via ${p.metodo === 'pix' ? 'Pix' : 'Cartão'}</div>
       <button class="btn-principal" onclick="abrirCardapio()">Fazer novo pedido</button>`;
@@ -895,7 +887,7 @@
       if (pedidos.some(x => x.status === 'awaiting_payment')) { mostrarErro('nao-pago'); return; }
       if (pedidos.some(x => x.status === 'collected')) { mostrarErro('usado'); return; }
       // sem pedidos criados no lado do consumidor: gera um pedido de exemplo já pago
-      p = { codigo: 'GH7-382', itens: [{ id:'skol', nome:'Skol Lata 350ml', qty:2, preco:8, estornado:0 }, { id:'caip', nome:'Caipirinha', qty:1, preco:18, estornado:0 }],
+      p = { codigo: 'GH7-382', itens: [{ id:'skol', nome:'Skol Lata 350ml', qty:2, preco:8, naoEntregue:false }, { id:'caip', nome:'Caipirinha', qty:1, preco:18, naoEntregue:false }],
             status: 'paid', metodo: 'pix', hora: agoraHora(), operador: null };
       pedidos.unshift(p);
     }
@@ -912,22 +904,18 @@
     document.getElementById('op-codigo-lido').textContent = p.codigo;
     const box = document.getElementById('op-itens-lidos');
     box.innerHTML = p.itens.map(it => {
-      const restante = it.qty - (it.estornado || 0);
-      if (restante <= 0) return '';
       const m = marcados.has(it.id);
       return `<div class="item-op ${m ? 'marcado' : ''}">
-        <span>${restante}x ${it.nome}</span>
+        <span>${it.qty}x ${it.nome}</span>
         <button class="btn-esgotou" onclick="alternarMarcado('${it.id}')">${m ? '✕ Acabou' : 'Acabou'}</button></div>`;
     }).join('');
-    const valorMarcado = p.itens.filter(it => marcados.has(it.id)).reduce((a, it) => a + (it.qty - (it.estornado || 0)) * it.preco, 0);
-    const btn = document.getElementById('btn-estornar-marcados');
-    btn.style.display = marcados.size ? 'block' : 'none';
-    btn.textContent = `Estornar itens que acabaram (${fmt(valorMarcado)})`;
-    document.getElementById('btn-confirmar').disabled = marcados.size > 0;
-    const resumo = document.getElementById('estorno-resumo');
-    const est = totalEstornado(p);
-    resumo.style.display = est > 0 ? 'block' : 'none';
-    resumo.innerHTML = `<strong>Estorno registrado</strong>${fmt(est)} devolvido ao cliente. Os itens foram marcados como esgotados no cardápio. Entregue o restante e confirme.`;
+    const aviso = document.getElementById('aviso-acabou');
+    const valorMarcado = p.itens.filter(it => marcados.has(it.id)).reduce((a, it) => a + it.qty * it.preco, 0);
+    const um = marcados.size === 1;
+    aviso.style.display = marcados.size ? 'block' : 'none';
+    aviso.innerHTML = `<strong>${um ? '1 item acabou' : marcados.size + ' itens acabaram'} (${fmt(valorMarcado)})</strong>Combine com o cliente uma troca ou a devolução do valor. Ao confirmar, ${um ? 'o item fica registrado como não entregue e aparece' : 'os itens ficam registrados como não entregues e aparecem'} como esgotado no cardápio.`;
+    document.getElementById('btn-confirmar').textContent = marcados.size === p.itens.length
+      ? '✓ Confirmar (nenhum item entregue)' : marcados.size ? '✓ Confirmar entrega do restante' : '✓ Confirmar entrega';
     document.getElementById('scan-resultado').classList.add('ativo');
     atualizarTelaUsuario();
   }
@@ -937,44 +925,24 @@
     abrirAtendimento();
   }
 
-  function estornarMarcados() {
-    const p = atendimento;
-    p.itens.forEach(it => {
-      if (marcados.has(it.id)) {
-        it.estornado = it.qty;
-        const item = cardapio.find(c => c.id === it.id);
-        if (item) item.disponivel = false; // item esgotado deixa de ser vendido no evento
-      }
-    });
-    marcados = new Set();
-    if (p.itens.every(it => it.estornado >= it.qty)) { finalizarEstornoTotal(); return; }
-    mostrarToast('operador', 'Estorno registrado. Entregue o restante.');
-    abrirAtendimento();
-  }
-
-  function estornarTudo() {
-    if (!confirm('Estornar o pedido inteiro? O valor total volta para o cliente.')) return;
-    atendimento.itens.forEach(it => { it.estornado = it.qty; });
-    finalizarEstornoTotal();
-  }
-
-  function finalizarEstornoTotal() {
-    const p = atendimento;
-    p.status = 'refunded';
-    entregues.unshift({ codigo: p.codigo, hora: agoraHora(), itens: p.itens, tipo: 'estorno' });
-    encerrarAtendimento('Pedido estornado integralmente.');
-  }
-
   function confirmarEntrega() {
     const p = atendimento;
+    // itens marcados com "Acabou" ficam registrados como não entregues e o item do evento fica esgotado
+    p.itens.forEach(it => {
+      if (marcados.has(it.id)) {
+        it.naoEntregue = true;
+        const item = cardapio.find(c => c.id === it.id);
+        if (item) item.disponivel = false;
+      }
+    });
     p.status = 'collected';
     p.horaEntrega = agoraHora();
-    entregues.unshift({ codigo: p.codigo, hora: p.horaEntrega, itens: p.itens, tipo: totalEstornado(p) > 0 ? 'parcial' : 'entregue' });
+    entregues.unshift({ codigo: p.codigo, hora: p.horaEntrega, itens: p.itens, tipo: p.itens.some(it => it.naoEntregue) ? 'parcial' : 'entregue' });
     encerrarAtendimento('Entrega confirmada. Pronto para o próximo pedido.');
   }
 
   function cancelarAtendimento() {
-    // devolve o pedido para paid, sem estorno
+    // devolve o pedido para paid
     atendimento.status = 'paid';
     atendimento.operador = null;
     encerrarAtendimento('Atendimento cancelado. O cliente ainda pode retirar o pedido.');
@@ -997,12 +965,11 @@
     }
     const tags = {
       entregue: '<div class="op-tag" style="color:var(--verde-ok);">✅ Entregue</div>',
-      parcial:  '<div class="op-tag" style="color:var(--amarelo);">✅ Entregue com estorno parcial</div>',
-      estorno:  '<div class="op-tag" style="color:var(--erro);">↩ Estornado</div>',
+      parcial:  '<div class="op-tag" style="color:var(--amarelo);">✅ Entregue · item que acabou não entregue</div>',
     };
     lista.innerHTML = entregues.map(e => `<div class="op-card">
       <div class="op-card-topo"><span class="op-codigo">${e.codigo}</span><span class="op-horario">${e.hora}</span></div>
-      <div class="op-itens">${e.itens.map(it => `${it.qty}x ${it.nome}${it.estornado ? ` <span style="color:var(--erro);">(${it.estornado} estornado)</span>` : ''}`).join('<br>')}</div>
+      <div class="op-itens">${e.itens.map(it => `${it.qty}x ${it.nome}${it.naoEntregue ? ` <span style="color:var(--amarelo);">(acabou, não entregue)</span>` : ''}`).join('<br>')}</div>
       ${tags[e.tipo]}</div>`).join('');
   }
 

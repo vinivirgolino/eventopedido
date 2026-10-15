@@ -19,7 +19,7 @@ O consumidor escaneia o QR Code fixo do estabelecimento, escolhe o evento, faz o
 
 - **Backend:** Node.js 20, TypeScript 5, Express, Prisma e Zod, hospedado na Railway
 - **Banco, Auth e Realtime:** Supabase (PostgreSQL 15)
-- **Pagamentos:** Pagar.me v5 (Pix e cartão), com split de 5% para a plataforma
+- **Pagamentos:** Mercado Pago (Pix e cartão), com OAuth por estabelecimento e split de 5% para a plataforma (`application_fee`)
 - **Apps:** Flutter (Web e nativo), com Riverpod
 - **Pacotes Node:** pnpm
 
@@ -49,7 +49,7 @@ docs/             especificação e protótipos
 
 - Node.js 20 e pnpm
 - Flutter (versão estável mais recente)
-- Projeto no Supabase e conta sandbox no Pagar.me
+- Projeto no Supabase e aplicação de teste (sandbox) no Mercado Pago
 
 ### Backend
 
@@ -62,7 +62,7 @@ Os comandos de instalação, migrations e execução entram na issue #7 (setup d
 
 ### Apps Flutter
 
-As instruções entram na issue #6 (configuração dos projetos Flutter). Os apps não usam `.env`: a configuração pública (URL da API, URL e chave anônima do Supabase, chave pública do Pagar.me) é passada com `--dart-define`.
+As instruções entram na issue #6 (configuração dos projetos Flutter). Os apps não usam `.env`: a configuração pública (URL da API, URL e chave anônima do Supabase, chave pública do Mercado Pago) é passada com `--dart-define`.
 
 ## Fluxo de trabalho
 
@@ -74,5 +74,5 @@ As instruções entram na issue #6 (configuração dos projetos Flutter). Os app
 ## Segurança
 
 - Nunca commitar `.env` nem credenciais. Use `backend/.env.example` como modelo.
-- Dados de cartão são tokenizados no app pelo Pagar.me e nunca passam pelo backend.
-- Dados bancários do estabelecimento ficam só no Pagar.me.
+- Dados de cartão são tokenizados no app pelo Mercado Pago e nunca passam pelo backend.
+- Nenhum dado bancário do estabelecimento fica na plataforma: cada estabelecimento conecta a própria conta Mercado Pago por OAuth.
